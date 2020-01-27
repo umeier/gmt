@@ -7,7 +7,7 @@ steps:
 # To rebuild the cache, you have to change the date in the key list
 - task: CacheBeta@0
   inputs:
-    key: $(Agent.OS) | vcpkg | 20200118
+    key: $(Agent.OS) | vcpkg | 20200127
     path: $(VCPKG_INSTALLATION_ROOT)/installed/
     cacheHitVar: CACHE_VCPKG_RESTORED
   displayName: Cache vcpkg libraries
