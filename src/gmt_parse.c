@@ -24,7 +24,7 @@
  * The API presently consists of 52 documented functions.  For a full
  * description of the API, see the GMT_API documentation.
  * These functions have Fortran bindings as well, provided you add
- * -DFORTRAN_API to the C preprocessor flags [in ConfigUser.cmake].
+ * -DFORTRAN_API to the C preprocessor flags [in ConfigUserAdvanced.cmake].
  *
  * Here lie the 13 public functions used for GMT API command parsing:
  *
@@ -165,9 +165,9 @@ GMT_LOCAL int parse_B_arg_inspector (struct GMT_CTRL *GMT, char *in) {
 		return (4);
 	}
 	else if (gmt4 && gmt5) {	/* Mixed case is never allowed */
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "parse_B_arg_inspector: Detected both GMT 4 and >= style elements in -B option. Unable to parse.\n");
-		if (n_slashes) GMT_Report (GMT->parent, GMT_MSG_NORMAL, "parse_B_arg_inspector: Slashes no longer separate axis specifications, use -B[xyz] and repeat\n");
-		if (colon_text || n_colons) GMT_Report (GMT->parent, GMT_MSG_NORMAL, "parse_B_arg_inspector: Colons no longer used for titles, labels, prefix, and suffix; see +t, +l, +p, +s\n");
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "parse_B_arg_inspector: Detected both GMT 4 and >= style elements in -B option. Unable to parse.\n");
+		if (n_slashes) GMT_Report (GMT->parent, GMT_MSG_ERROR, "parse_B_arg_inspector: Slashes no longer separate axis specifications, use -B[xyz] and repeat\n");
+		if (colon_text || n_colons) GMT_Report (GMT->parent, GMT_MSG_ERROR, "parse_B_arg_inspector: Colons no longer used for titles, labels, prefix, and suffix; see +t, +l, +p, +s\n");
 		return (-1);
 	}
 	else {
@@ -237,11 +237,11 @@ GMT_LOCAL unsigned int parse_check_extended_R (struct GMT_CTRL *GMT, struct GMT_
 	}
 	if (GMT->common.R.active[ISET])
 		return 0;
-	GMT_Report (GMT->parent, GMT_MSG_NORMAL, "-R[L|C|R][T|M|B]<x0>/<y0>/<n_columns>/<ny> requires grid spacings via -I\n");
+	GMT_Report (GMT->parent, GMT_MSG_ERROR, "-R[L|C|R][T|M|B]<x0>/<y0>/<n_columns>/<ny> requires grid spacings via -I\n");
 	return 1;
 }
 
-#define Return { GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Found no history for option -%s\n", str); return (-1); }
+#define Return { GMT_Report (GMT->parent, GMT_MSG_ERROR, "Found no history for option -%s\n", str); return (-1); }
 
 /*! . */
 GMT_LOCAL int parse_complete_options (struct GMT_CTRL *GMT, struct GMT_OPTION *options) {
@@ -276,7 +276,7 @@ GMT_LOCAL int parse_complete_options (struct GMT_CTRL *GMT, struct GMT_OPTION *o
 	}
 	for (k = 0, B_id = GMT_NOTSET; k < GMT_N_UNIQUE && B_id == GMT_NOTSET; k++)
 		if (!strcmp (GMT_unique_option[k], "B")) B_id = k;	/* B_id === 0 but just in case this changes we do this search anyway */
-
+	assert (B_id != GMT_NOTSET);	/* Safety valve just in case */
 	check_B = (strncmp (GMT->init.module_name, "psscale", 7U) && strncmp (GMT->init.module_name, "docs", 4U));
 	if (GMT->current.setting.run_mode == GMT_MODERN && n_B && check_B) {	/* Write gmt.frame file unless module is psscale, overwriting any previous file */
 		char file[PATH_MAX] = {""};
@@ -454,6 +454,37 @@ GMT_LOCAL struct GMT_OPTION *fix_gdal_files (struct GMT_OPTION *opt) {
 	return opt;
 }
 
+/*! */
+GMT_LOCAL void ensure_b_options_order (struct GMT_CTRL *GMT, struct GMT_OPTION *options) {
+	bool do_sort = false;
+	char *c = NULL;
+	unsigned int k, n_B = 0, this_priority, priority[12]; /* Worst case is -Bpx, -Bsx, ... */
+	struct GMT_OPTION *opt;
+
+	gmt_M_memset (priority, 12, unsigned int);
+
+	for (opt = options; opt; opt = opt->next) {
+		if (opt->option != 'B') continue;	/* Only look at -B options here */
+		if (gmtinit_B_is_frame (GMT, opt->arg)) continue;	/* Don't care about the frame setting here */
+		if ((c = gmt_first_modifier (GMT, opt->arg, "aflLpsSu"))) {	/* Option has axis modifier(s) */
+			c[0] = '\0';	/* Temporary chop them off */
+			k = 0;	/* Start of option string, then advance past any leading [p|s][x|y|z] */
+			if (strchr ("ps",  opt->arg[k])) k++;
+			if (strchr ("xyz", opt->arg[k])) k++;
+			this_priority = (opt->arg[k]) ? 1 : 2;	/* If nothing then probably just a label setting, else we have a leading interval setting */
+			c[0] = '+';	/* Restore modifiers */
+		}
+		else /* Must be interval setting */
+			this_priority = 1;
+		priority[n_B] = this_priority;
+		n_B++;
+	}
+	if (n_B < 2) return;	/* Nothing to sort */
+	for (k = 1; k < n_B; k++) if (priority[k] < priority[k-1]) do_sort = true;
+	if (!do_sort) return;	/* No need to sort */
+	GMT_Report (GMT->parent, GMT_MSG_WARNING, "GMT_Parse_Options: List interval-setting -B options before other axis -B options to ensure proper parsing.\n");
+}
+
 /*! . */
 struct GMT_OPTION *GMT_Create_Options (void *V_API, int n_args_in, const void *in) {
 	/* This function will loop over the n_args_in supplied command line arguments (in) and
@@ -505,7 +536,7 @@ struct GMT_OPTION *GMT_Create_Options (void *V_API, int n_args_in, const void *i
 		 * these items by temporarily replacing spaces inside quoted strings with ASCII 31 US (Unit Separator), do the strtok on
 		 * space, and then replace all ASCII 31 with space at the end (we do the same for tab using ASCII 29 GS (group separator) */
 		for (k = 0, quoted = false; txt_in[k]; k++) {
-			if (txt_in[k] == '\"') quoted = !quoted;	/* Initially false, becomes true at start of quote, then false when exit quote */
+			if (txt_in[k] == '\"' || txt_in[k] == '\'') quoted = !quoted;	/* Initially false, becomes true at start of quote, then false when exit quote */
 			else if (quoted && txt_in[k] == '\t') txt_in[k] = GMT_ASCII_GS;
 			else if (quoted && txt_in[k] == ' ')  txt_in[k] = GMT_ASCII_US;
 		}
@@ -539,7 +570,7 @@ struct GMT_OPTION *GMT_Create_Options (void *V_API, int n_args_in, const void *i
 
 		/* Note: The UNIX command line will never see redirections like >, >>, and < pass as arguments, so when we check for these
 		 * below it is because command-strings passed from external APIs may contain things like '-Fap -O -K >> plot.ps' */
-	
+
 		if (args[arg][0] == '=' && args[arg][1] && !gmt_access (API->GMT, &args[arg][1], F_OK)) {	/* Gave a file list which we must expand into options */
 			char **flist = NULL;
 			uint64_t n_files, f;
@@ -547,7 +578,7 @@ struct GMT_OPTION *GMT_Create_Options (void *V_API, int n_args_in, const void *i
 			if ((new_opt = GMT_Make_Option (API, '=', &args[arg][1])) == NULL)	/* Make option with the listing name flagged as option -= */
 				return_null (API, error);	/* Create the new option structure given the args, or return the error */
 			head = GMT_Append_Option (API, new_opt, head);		/* Hook new option to the end of the list (or initiate list if head == NULL) */
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "GMT_Create_Options: Must expand list file %s\n", args[arg]);
+			GMT_Report (API, GMT_MSG_INFORMATION, "GMT_Create_Options: Must expand list file %s\n", args[arg]);
 			for (f = 0; f < n_files; f++) {	/* Now expand all the listed files into options */
 				GMT_Report (API, GMT_MSG_DEBUG, "GMT_Create_Options: Adding input file: %s\n", flist[f]);
 				if ((new_opt = GMT_Make_Option (API, GMT_OPT_INFILE, flist[f])) == NULL)
@@ -653,7 +684,7 @@ int GMT_Destroy_Options (void *V_API, struct GMT_OPTION **head) {
 
 	current = *head;
 	if (current && current->option < 0) {
-		GMT_Report(API, GMT_MSG_NORMAL, "WARNING in GMT_Destroy_Options(): GMT_OPTION struct has junk. Returning before crash\n");
+		GMT_Report(API, GMT_MSG_ERROR, "GMT_Destroy_Options(): GMT_OPTION struct has junk. Returning before crash\n");
 		*head = NULL;
 		return (GMT_OK);	/* Should we return an error state instead? */
 	}
@@ -1007,6 +1038,8 @@ int GMT_Parse_Common (void *V_API, const char *given_options, struct GMT_OPTION 
 	if (parse_complete_options (API->GMT, options)) return_error (API, GMT_OPTION_HISTORY_ERROR);	/* Replace shorthand failed */
 
 	if (API->GMT->common.B.mode == 0) API->GMT->common.B.mode = parse_check_b_options (API->GMT, options);	/* Determine the syntax of the -B option(s) */
+
+	ensure_b_options_order (API->GMT, options);	/* Avoid parsing axes labels etc before axis increments since we may auto-set increments in the former */
 
 	n_errors = parse_check_extended_R (API->GMT, options);	/* Possibly parse -I if required by -R */
 

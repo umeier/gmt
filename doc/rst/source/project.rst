@@ -14,13 +14,13 @@ Synopsis
 
 **gmt project** [ *table* ] |-C|\ *cx*/*cy* [ |-A|\ *azimuth* ]
 [ |-E|\ *bx*/*by* ] [ |-F|\ *flags* ]
-[ |-G|\ *dist*\ [/*colat*][**+h**] ]
-[ |-L|\ [**w**\ \|\ *l\_min*/*l\_max*] ]
+[ |-G|\ *dist*\ [/*colat*][**+c**\|\ **h**] ]
+[ |-L|\ [**w**\|\ *l\_min*/*l\_max*] ]
 [ |-N| ] [ |-Q| ] [ |-S| ]
 [ |-T|\ *px*/*py* ]
 [ |SYN_OPT-V| ]
 [ |-W|\ *w\_min*/*w\_max* ]
-[ |-Z|\ *major*/*minor*/*azimuth*\ [**+e**\ ] ]
+[ |-Z|\ *major*/*minor*/*azimuth*\ [**+e**] ]
 [ |SYN_OPT-b| ]
 [ |SYN_OPT-d| ]
 [ |SYN_OPT-e| ]
@@ -147,19 +147,21 @@ Optional Arguments
 
 .. _-G:
 
-**-G**\ *dist*\ [/*colat*][**+h**]
+**-G**\ *dist*\ [/*colat*][**+c**\|\ **h**]
     Generate mode. No input is read. Create (*r*, *s*, *p*) output
     points every *dist* units of *p*. See **-Q** option. Alternatively,
     append **/**\ *colat* for a small circle instead [Default is a
-    colatitude of 90, i.e., a great circle]. Use **-C** and **-E** to
+    colatitude of 90, i.e., a great circle]. If setting a pole with **-T**
+    and you want the small circle to go through *cx*/*cy*, append **+c** to
+    compute the required colatitude. Use **-C** and **-E** to
     generate a circle that goes through the center and end point. Note,
     in this case the center and end point cannot be farther apart than
-    2\*\|\ *colat*\ \|. Finally, if you append **+h** the we will report
+    2\*\|\ *colat*\|. Finally, if you append **+h** the we will report
     the position of the pole as part of the segment header [no header].
 
 .. _-L:
 
-**-L**\ [**w**\ \|\ *l\_min*/*l\_max*]
+**-L**\ [**w**\|\ *l\_min*/*l\_max*]
     Length controls. Project only those points whose *p* coordinate is
     within *l\_min* < *p* < *l\_max*. If **-E** has been set, then you
     may alternatively use **-Lw** to stay within the distance from **C** to **E**.
@@ -201,7 +203,7 @@ Optional Arguments
     Width controls. Project only those points whose *q* coordinate is
     within *w\_min* < *q* < *w\_max*.
 
-**-Z**\ *major*/*minor*/*azimuth*\ [**+e**\ ]
+**-Z**\ *major*/*minor*/*azimuth*\ [**+e**]
     Used in conjunction with **-C** (sets its center) and **-G** (sets the
     distance increment) to create the coordinates of an ellipse
     with *major* and *minor* axes given in km (unless **-N** is given) and the *azimuth* of the

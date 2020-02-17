@@ -191,7 +191,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTVECTOR_CTRL *Ctrl, struct G
 				else if (opt->arg[0] == '\0')
 					Ctrl->C.active[GMT_IN] = Ctrl->C.active[GMT_OUT] = true;
 				else {
-					GMT_Message (API, GMT_TIME_NONE, "Bad modifier given to -C (%s)\n", opt->arg);
+					GMT_Report (API, GMT_MSG_ERROR, "Bad modifier given to -C (%s)\n", opt->arg);
 					n_errors++;
 				}
 				break;
@@ -239,7 +239,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTVECTOR_CTRL *Ctrl, struct G
 							Ctrl->T.par[2] = atof (txt_c);
 						}
 						else {
-							GMT_Report (API, GMT_MSG_NORMAL, "Bad arguments given to -Tr (%s)\n", opt->arg);
+							GMT_Report (API, GMT_MSG_ERROR, "Bad arguments given to -Tr (%s)\n", opt->arg);
 							n_errors++;
 						}
 						break;
@@ -262,10 +262,10 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTVECTOR_CTRL *Ctrl, struct G
 
 	n_in = (Ctrl->C.active[GMT_IN] && gmt_M_is_geographic (GMT, GMT_IN)) ? 3 : 2;
 	if (GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] == 0) GMT->common.b.ncol[GMT_IN] = n_in;
-	n_errors += gmt_M_check_condition (GMT, GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] < n_in, "Syntax error: Binary input data (-bi) must have at least %d columns\n", n_in);
-	n_errors += gmt_M_check_condition (GMT, Ctrl->S.active && Ctrl->S.arg && !gmt_access (GMT, Ctrl->S.arg, R_OK), "Syntax error -S: Secondary vector cannot be a file!\n");
-	n_errors += gmt_M_check_condition (GMT, n_files > 1, "Syntax error: Only one output destination can be specified\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->In.n_args && Ctrl->A.active && Ctrl->A.mode == 0, "Syntax error: Cannot give input files and -A<vec> at the same time\n");
+	n_errors += gmt_M_check_condition (GMT, GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] < n_in, "Binary input data (-bi) must have at least %d columns\n", n_in);
+	n_errors += gmt_M_check_condition (GMT, Ctrl->S.active && Ctrl->S.arg && !gmt_access (GMT, Ctrl->S.arg, R_OK), "Option -S: Secondary vector cannot be a file!\n");
+	n_errors += gmt_M_check_condition (GMT, n_files > 1, "Only one output destination can be specified\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->In.n_args && Ctrl->A.active && Ctrl->A.mode == 0, "Cannot give input files and -A<vec> at the same time\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
@@ -300,11 +300,11 @@ GMT_LOCAL unsigned int decode_vector (struct GMT_CTRL *GMT, char *arg, double co
 		coord[GMT_Z] = atof (txt_c);
 	}
 	else {
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Bad vector argument (%s)\n", arg);
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Bad vector argument (%s)\n", arg);
 		return (0);
 	}
 	if (n_errors) {
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Failed to decode the geographic coordinates (%s)\n", arg);
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Failed to decode the geographic coordinates (%s)\n", arg);
 		return (0);
 	}
 	return (n_out);
@@ -312,10 +312,10 @@ GMT_LOCAL unsigned int decode_vector (struct GMT_CTRL *GMT, char *arg, double co
 
 GMT_LOCAL void get_bisector (struct GMT_CTRL *GMT, double A[3], double B[3], double P[3]) {
 	/* Given points in A and B, return the bisector pole via P */
-	
+
 	unsigned int i;
 	double Pa[3], M[3];
-	
+
 	/* Get mid point between A and B */
 
 	for (i = 0; i < 3; i++) M[i] = A[i] + B[i];
@@ -384,7 +384,7 @@ GMT_LOCAL void mean_vector (struct GMT_CTRL *GMT, struct GMT_DATASET *D, bool ca
 	for (k = 0; k < n_components; k++) gmt_M_free (GMT, P[k]);
 
 	if (gmt_jacobi (GMT, C, n_components, n_components, lambda, V, work1, work2, &nrots)) {	/* Solve eigen-system */
-		GMT_Message (GMT->parent, GMT_TIME_NONE, "Eigenvalue routine failed to converge in 50 sweeps.\n");
+		GMT_Report (GMT->parent, GMT_MSG_WARNING, "Eigenvalue routine failed to converge in 50 sweeps.\n");
 	}
 	if (n_components == 3) {	/* Recover lon,lat */
 		gmt_cart_to_geo (GMT, &lat, &lon, X, true);
@@ -417,7 +417,7 @@ GMT_LOCAL void mean_vector (struct GMT_CTRL *GMT, struct GMT_DATASET *D, bool ca
 	E[1] = 2.0 * sqrt (lambda[0]) * scl;	/* 2* since we need the major axis not semi-major */
 	E[2] = 2.0 * sqrt (lambda[1]) * scl;
 
-	GMT_Report (GMT->parent, GMT_MSG_LONG_VERBOSE, "%g%% confidence ellipse on mean position: Major axis = %g Minor axis = %g Major axis azimuth = %g\n", 100.0 * conf, E[1], E[2], E[0]);
+	GMT_Report (GMT->parent, GMT_MSG_INFORMATION, "%g%% confidence ellipse on mean position: Major axis = %g Minor axis = %g Major axis azimuth = %g\n", 100.0 * conf, E[1], E[2], E[0]);
 }
 
 GMT_LOCAL void gmt_make_rot2d_matrix (double angle, double R[3][3]) {
@@ -489,7 +489,7 @@ int GMT_gmtvector (void *V_API, int mode, void *args) {
 
 	if (Ctrl->A.active) {	/* Want a single primary vector */
 		uint64_t dim[GMT_DIM_SIZE] = {1, 1, 1, 3};
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Processing single input vector; no files are read\n");
+		GMT_Report (API, GMT_MSG_INFORMATION, "Processing single input vector; no files are read\n");
 		if (Ctrl->A.mode) {	/* Compute the mean of all input vectors */
 			if (GMT_Init_IO (API, GMT_IS_DATASET, GMT_IS_POINT, GMT_IN, GMT_ADD_DEFAULT, 0, options) != GMT_NOERROR) {	/* Registers default input sources, unless already set */
 				Return (API->error);
@@ -498,7 +498,7 @@ int GMT_gmtvector (void *V_API, int mode, void *args) {
 				Return (API->error);
 			}
 			if (Din->n_columns < 2) {
-				GMT_Report (API, GMT_MSG_NORMAL, "Input data have %d column(s) but at least %u are needed\n", (int)Din->n_columns, n_in);
+				GMT_Report (API, GMT_MSG_ERROR, "Input data have %d column(s) but at least %u are needed\n", (int)Din->n_columns, n_in);
 				Return (GMT_DIM_TOO_SMALL);
 			}
 			n = n_out = (Ctrl->C.active[GMT_OUT] && (Din->n_columns == 3 || gmt_M_is_geographic (GMT, GMT_IN))) ? 3 : 2;
@@ -526,7 +526,7 @@ int GMT_gmtvector (void *V_API, int mode, void *args) {
 		single = true;
 	}
 	else {	/* Read input files or stdin */
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Processing input table data\n");
+		GMT_Report (API, GMT_MSG_INFORMATION, "Processing input table data\n");
 		if (GMT_Init_IO (API, GMT_IS_DATASET, GMT_IS_POINT, GMT_IN, GMT_ADD_DEFAULT, 0, options) != GMT_NOERROR) {	/* Registers default input sources, unless already set */
 			Return (API->error);
 		}
@@ -534,7 +534,7 @@ int GMT_gmtvector (void *V_API, int mode, void *args) {
 			Return (API->error);
 		}
 		if (Din->n_columns < 2) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Input data have %d column(s) but at least %u are needed\n", (int)Din->n_columns, n_in);
+			GMT_Report (API, GMT_MSG_ERROR, "Input data have %d column(s) but at least %u are needed\n", (int)Din->n_columns, n_in);
 			Return (GMT_DIM_TOO_SMALL);
 		}
 		n = n_out = (Ctrl->C.active[GMT_OUT] && (Din->n_columns == 3 || gmt_M_is_geographic (GMT, GMT_IN))) ? 3 : 2;
@@ -574,7 +574,7 @@ int GMT_gmtvector (void *V_API, int mode, void *args) {
 						gmt_polar_to_cart (GMT, Sin->data[GMT_X][row], Sin->data[GMT_Y][row], vector_1, true);
 				}
 				else for (k = 0; k < n_components; k++) vector_1[k] = Sin->data[k][row];
-			
+
 				switch (Ctrl->T.mode) {
 					case DO_AVERAGE:	/* Get sum of 2-D or 3-D vectors and compute average */
 						for (k = 0; k < n_components; k++) vector_3[k] = 0.5 * (vector_1[k] + vector_2[k]);

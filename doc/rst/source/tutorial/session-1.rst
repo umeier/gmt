@@ -186,17 +186,14 @@ File name expansion or "wild cards"
 UNIX provides several ways to select groups of files based
 on name patterns:
 
-  +---------+---------------------------------------+
-  |  Code   | Meaning                               |
-  +=========+=======================================+
-  | \*      | Matches anything                      |
-  +---------+---------------------------------------+
-  | \?      | Matches any single character          |
-  +---------+---------------------------------------+
-  | *list*  | Matches characters in the list        |
-  +---------+---------------------------------------+
-  | *range* | Matches characters in the given range |
-  +---------+---------------------------------------+
+======== ========================================
+Code     Meaning
+======== ========================================
+\*       Matches anything
+\?       Matches any single character
+*list*   Matches characters in the list
+*range*  Matches characters in the given range
+======== ========================================
 
 You can save much time by getting into the habit of selecting
 "good" filenames that make it easy to select subsets of all
@@ -300,25 +297,18 @@ access the GMT coastline, river and border data base derived from the GSHHG
 database [See *Wessel and Smith*, 1996].  In addition
 to the common switches we may need to use some of several coast-specific options:
 
-  +--------+------------------------------------------------------------------------------------------------+
-  | Option | Purpose                                                                                        |
-  +========+================================================================================================+
-  | **-A** | Exclude small features or those of high hierarchical levels (see :doc:`/datasets/gshhg`        |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-D** | Select data resolution (**f**\ ull, **h**\ igh, **i**\ ntermediate, **l**\ ow, or **c**\ rude) |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-G** | Set color of dry areas (default does not paint)                                                |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-I** | Draw rivers (chose features from one or more hierarchical categories)                          |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-L** | Plot map scale (length scale can be km, miles, or nautical miles)                              |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-N** | Draw political borders (including US state borders)                                            |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-S** | Set color for wet areas (default does not paint)                                               |
-  +--------+------------------------------------------------------------------------------------------------+
-  | **-W** | Draw coastlines and set pen thickness                                                          |
-  +--------+------------------------------------------------------------------------------------------------+
+====== ================================================================================================
+Option Purpose
+====== ================================================================================================
+**-A** Exclude small features or those of high hierarchical levels (see :doc:`GSHHG </datasets/gshhg>`)
+**-D** Select data resolution (**f**\ ull, **h**\ igh, **i**\ ntermediate, **l**\ ow, or **c**\ rude)
+**-G** Set color of dry areas (default does not paint)
+**-I** Draw rivers (chose features from one or more hierarchical categories)
+**-L** Plot map scale (length scale can be km, miles, or nautical miles)
+**-N** Draw political borders (including US state borders)
+**-S** Set color for wet areas (default does not paint)
+**-W** Draw coastlines and set pen thickness
+====== ================================================================================================
 
 One of **-W**, **-G**, **-S** must be selected.  Our first coastline
 example is from Latin America:
@@ -339,7 +329,7 @@ Exercises:
 
 #. Add the **-V** option.
 #. Try **-R**\ 270/290/0/20 instead.  What happens to the annotations?
-#. Edit your gmt.conf file, change :ref:`FORMAT_GEO_MAP <FORMAT_GEO_MAP>`
+#. Edit your gmt.conf file, change :term:`FORMAT_GEO_MAP`
    to another setting (see the :doc:`/gmt.conf` documentation), and plot again.
 #. Pick another region and change land color.
 #. Pick a region that includes the north or south poles.
@@ -373,7 +363,7 @@ Your plot should look like :ref:`our example 4 below <gmt_tut_4>`
 
 Exercises:
 
-#. Change the parameter :ref:`MAP_GRID_CROSS_SIZE\_PRIMARY <MAP_GRID_CROSS_SIZE\_PRIMARY>` to make grid crosses instead of gridlines.
+#. Change the parameter :term:`MAP_GRID_CROSS_SIZE_PRIMARY` to make grid crosses instead of gridlines.
 
 #. Change **-R** to a rectangular box specification instead of
    minimum and maximum values.
@@ -416,7 +406,7 @@ We conclude the survey of map projections with the Eckert IV and VI projections
 (**-JK**), two of several projections used for global thematic maps; They
 are both equal-area projections whose syntax is
 
-**-JK**\ [**f**\ \|\ **s**]\ *lon_0/width*
+**-JK**\ [**f**\|\ **s**]\ *lon_0/width*
 
 where **b** gives Eckert IV (4) and **s** (Default) gives Eckert VI (6).
 The *lon_0* is the central meridian (which takes precedence over

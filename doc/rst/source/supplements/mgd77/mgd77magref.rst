@@ -13,13 +13,13 @@ Synopsis
 .. include:: ../../common_SYN_OPTs.rst_
 
 **gmt mgd77magref** [ *inputfile* ]
-[ |-A|\ [**+a**\ *alt*\ **+t**\ *date*\ **+y**] ]
+[ |-A|\ [**+a**\ *alt*\ ][**+t**\ *date*\ ][**+y**] ]
 [ |-C|\ *cm4file* ]
 [ |-D|\ *Dstfile* ]
 [ |-E|\ *f107file* ]
 [ |-F|\ *flags* ]
 [ |-G| ]
-[ |-S|\ **c**\ \|\ **l**\ *low/high* ]
+[ |-S|\ **c**\|\ **l**\ *low/high* ]
 [ |SYN_OPT-V| ]
 [ |SYN_OPT-b| ]
 [ |SYN_OPT-f| ]
@@ -78,7 +78,7 @@ Optional Arguments
 
 .. _-A:
 
-**-A**\ [**+a**\ *alt*\ **+t**\ *date*\ **+y**]
+**-A**\ [**+a**\ *alt*\ ][**+t**\ *date*\ ][**+y**]
     Adjusts how the input record is interpreted. Append **+a** to set a
     fixed *altitude* (in km) that should apply to all data records
     [Default expects *altitude* to be in the 3rd column of all records].
@@ -86,7 +86,7 @@ Optional Arguments
     records [Default expects *time* to be in the 4th column of all
     records]. Finally, append **+y** to indicate that all times are
     specified as decimal years [Default is ISO *date*\ T\ *colck* format, see
-    :ref:`TIME_EPOCH <TIME_EPOCH>`].
+    :term:`TIME_EPOCH`].
 
 .. _-C:
 
@@ -203,7 +203,7 @@ Optional Arguments
 
 .. |Add_-V| unicode:: 0x20 .. just an invisible code
 .. include:: ../../explain_-V.rst_
-   
+
 .. |Add_-bi| replace:: [Default is 4 input columns unless **-A** is used].
 .. include:: ../../explain_-bi.rst_
 

@@ -192,7 +192,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct PSSOLAR_CTRL *Ctrl, struct GMT
 					Ctrl->I.position = true;
 					if (opt->arg[0] != '+') {		/* Then it must be a location */
 						n_errors += gmt_M_check_condition (GMT, sscanf (opt->arg, "%lf/%lf", &Ctrl->I.lon, &Ctrl->I.lat) != 2,
-					                                     "Syntax error: Expected -I[<lon>/<lat>]\n");
+					                                     "Expected -I[<lon>/<lat>]\n");
 					}
 					if ((pch = strchr(opt->arg, '+')) != NULL) {		/* Have one or two extra options */
 						parse_date_tz(pch, &date, &TZ);
@@ -239,7 +239,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct PSSOLAR_CTRL *Ctrl, struct GMT
 				else 		/* Then the default */
 					{Ctrl->T.night = true;		Ctrl->T.radius[0] = 90.833;}
 				if (pch) pch[0] = '+';	/* Restore it */
-				
+
 				break;
 			case 'W':		/* Pen */
 				Ctrl->W.active = true;
@@ -259,7 +259,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct PSSOLAR_CTRL *Ctrl, struct GMT
 		if (Ctrl->T.radius[j] > 0.0) Ctrl->T.n_terminators++;
 
 	if (Ctrl->N.active && GMT->current.map.frame.init) {
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Option -B cannot be used in combination with Option -N. -B is ignored.\n");
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Option -B cannot be used in combination with Option -N. -B is ignored.\n");
 		GMT->current.map.frame.draw = false;
 	}
 	if (!Ctrl->I.active && !Ctrl->M.active) {	/* Allow plotting without specifying -R and/or -J */
@@ -273,10 +273,11 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct PSSOLAR_CTRL *Ctrl, struct GMT
 		}
 	}
 
-	n_errors += gmt_M_check_condition (GMT, Ctrl->N.active && !Ctrl->G.clip, "Syntax error: -N requires -Gc\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->G.clip && Ctrl->T.n_terminators > 1, "Syntax error: Can only select one terminator when using -Gc\n");
-	n_errors += gmt_M_check_condition (GMT, n_files > 0, "Syntax error: No input files allowed\n");
-	n_errors += gmt_M_check_condition (GMT, (Ctrl->T.active + Ctrl->I.active) > 1, "Syntax error: Cannot combine -T and -I\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->C.active && !Ctrl->I.active, "Option -C requires -I\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->N.active && !Ctrl->G.clip, "Option -N requires -Gc\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->G.clip && Ctrl->T.n_terminators > 1, "Can only select one terminator when using -Gc\n");
+	n_errors += gmt_M_check_condition (GMT, n_files > 0, "No input files allowed\n");
+	n_errors += gmt_M_check_condition (GMT, (Ctrl->T.active + Ctrl->I.active) > 1, "Cannot combine -T and -I\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
@@ -288,7 +289,7 @@ GMT_LOCAL int solar_params (struct PSSOLAR_CTRL *Ctrl, struct SUN_PARAMS *Sun) {
 	/* Adapted from https://github.com/joa-quim/mirone/blob/master/utils/solar_params.m  */
 	/* http://www.esrl.noaa.gov/gmd/grad/solcalc/calcdetails.html */
 	/* Compute the day-night terminator and the civil, nautical and astronomical twilights
-	   as well as several other solar parameters such sunrise, senset, Sun position, etc... */
+	   as well as several other solar parameters such sunrise, sunset, Sun position, etc... */
 	int    TZ, year, month, day, hour, min;
 	struct tm *UTC;
 	time_t right_now = time (NULL);
@@ -406,7 +407,7 @@ int GMT_solar (void *V_API, int mode, void *args) {
 		dump_data = (GMT_Find_Option (API, 'M', options) != NULL);
 		gmt_M_free_options (mode);
 		if (!(print_postion || dump_data)) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Shared GMT module not found: solar\n");
+			GMT_Report (API, GMT_MSG_ERROR, "Shared GMT module not found: solar\n");
 			return (GMT_NOT_A_VALID_MODULE);
 		}
 	}
@@ -491,24 +492,30 @@ int GMT_pssolar (void *V_API, int mode, void *args) {
 				Return (API->error);
 			}
 
-			sprintf (record, "\tSun current position:    long = %f\tlat = %f", -Sun->HourAngle, Sun->SolarDec);
+			sprintf (record, "Sun current position:");
 			GMT_Put_Record (API, GMT_WRITE_DATA, Out);
-			sprintf (record, "\t                      Azimuth = %.4f\tElevation = %.4f", Sun->SolarAzim, Sun->SolarElevation);
+			sprintf (record, "\tLongitude = %f", -Sun->HourAngle);
+			GMT_Put_Record (API, GMT_WRITE_DATA, Out);
+			sprintf (record, "\tLatitude  = %f", Sun->SolarDec);
+			GMT_Put_Record (API, GMT_WRITE_DATA, Out);
+			sprintf (record, "\tAzimuth   = %.4f", Sun->SolarAzim);
+			GMT_Put_Record (API, GMT_WRITE_DATA, Out);
+			sprintf (record, "\tElevation = %.4f", Sun->SolarElevation);
 			GMT_Put_Record (API, GMT_WRITE_DATA, Out);
 			if (Ctrl->I.position) {
 				if (isnan(Sun->Sunrise)) {
-					sprintf(record, "\tSunrise? No, not yet, sun is under the horizon.");
+					sprintf(record, "\nSunrise? No, not yet, sun is under the horizon.");
 					GMT_Put_Record(API, GMT_WRITE_DATA, Out);
 				}
 				else {
 					hour = (int)(Sun->Sunrise * 24);	min = irint((Sun->Sunrise * 24 - hour) * 60);
-					sprintf(record, "\tSunrise  = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
+					sprintf(record, "\n\tSunrise   = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
 					hour = (int)(Sun->Sunset * 24);		min = irint((Sun->Sunset * 24 - hour) * 60);
-					sprintf(record, "\tSunset   = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
+					sprintf(record, "\tSunset    = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
 					hour = (int)(Sun->SolarNoon * 24);	min = irint((Sun->SolarNoon * 24 - hour) * 60);
-					sprintf(record, "\tNoon     = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
+					sprintf(record, "\tNoon      = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
 					hour = (int)(Sun->Sunlight_duration / 60);	min = irint(Sun->Sunlight_duration - hour * 60);
-					sprintf(record, "\tDuration = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
+					sprintf(record, "\tDuration  = %02d:%02d", hour, min);	GMT_Put_Record(API, GMT_WRITE_DATA, Out);
 				}
 			}
 			gmt_M_free (GMT, Out);
@@ -562,7 +569,7 @@ int GMT_pssolar (void *V_API, int mode, void *args) {
 	else {	/* Plotting the terminator as line, polygon, or clip path */
 		double *lon = NULL, *lat = NULL, x0, y0;
 		unsigned int first = (Ctrl->N.active) ? 0 : 1;
-	
+
 		if (gmt_M_err_pass (GMT, gmt_map_setup (GMT, GMT->common.R.wesn), "")) {
 			gmt_M_free (GMT, Sun);
 			Return (GMT_PROJECTION_ERROR);

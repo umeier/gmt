@@ -12,8 +12,7 @@ Synopsis
 
 .. include:: common_SYN_OPTs.rst_
 
-**gmt trend2d** [ *table* ] |-F|\ **xyzmrw**\ \|\ **p** |-N|\ *n_model*\ [**+r**]
-[ *xyz[w]file* ]
+**gmt trend2d** [ *table* ] |-F|\ **xyzmrw**\|\ **p** |-N|\ *n_model*\ [**+r**]
 [ |-C|\ *condition\_number* ]
 [ |-I|\ [*confidence\_level*] ]
 [ |SYN_OPT-V| ]
@@ -58,7 +57,7 @@ Required Arguments
 
 .. _-F:
 
-**-F**\ **xyzmrw**\ \|\ **p**
+**-F**\ **xyzmrw**\|\ **p**
     Specify up to six letters from the set {**x y z m r w**\ } in any
     order to create columns of ASCII [or binary] output. **x** = x,
     **y** = y, **z** = z, **m** = model f(x,y), **r** = residual z -
@@ -67,7 +66,7 @@ Required Arguments
 
 .. _-N:
 
-**-N**\ *n\_model*\ [**+r**\ ]
+**-N**\ *n\_model*\ [**+r**]
     Specify the number of terms in the model, *n\_model*, and append
     **+r** to do a robust fit. E.g., a robust bilinear model is
     **-N**\ *4*\ **+r**.
@@ -91,7 +90,7 @@ Optional Arguments
 
 .. _-I:
 
-**-I**\ [*confidence\_level*\ ]
+**-I**\ [*confidence\_level*]
     Iteratively increase the number of model parameters, starting at
     one, until *n\_model* is reached or the reduction in variance of the
     model is not significant at the *confidence\_level* level. You may

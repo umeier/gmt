@@ -122,7 +122,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTREAD_CTRL *Ctrl, struct GMT
 						if (gmt_M_compat_check (GMT, 5))	/* There is no longer a T type but we will honor T from GMT5 */
 							Ctrl->T.mode = GMT_IS_DATASET;
 						else {
-							GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Unrecognized data type %c.  Choose from c, d, g, i, and p\n", opt->arg[0]);
+							GMT_Report (GMT->parent, GMT_MSG_ERROR, "Unrecognized data type %c.  Choose from c, d, g, i, and p\n", opt->arg[0]);
 							n_errors++;
 						}
 						break;
@@ -132,7 +132,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTREAD_CTRL *Ctrl, struct GMT
 					case 'i': Ctrl->T.mode = GMT_IS_IMAGE;	 break;
 					case 'p': Ctrl->T.mode = GMT_IS_POSTSCRIPT;	 break;
 					default:
-						GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Unrecognized data type %c.  Choose from c, d, g, i, and p\n", opt->arg[0]);
+						GMT_Report (GMT->parent, GMT_MSG_ERROR, "Unrecognized data type %c.  Choose from c, d, g, i, and p\n", opt->arg[0]);
 						n_errors++;
 						break;
 				}
@@ -145,15 +145,15 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTREAD_CTRL *Ctrl, struct GMT
 	}
 
 	n_errors += gmt_M_check_condition (GMT, GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] == 0,
-	                                 "Syntax error: Must specify number of columns in binary input data (-bi)\n");
+	                                 "Must specify number of columns in binary input data (-bi)\n");
 	n_errors += gmt_M_check_condition (GMT, !(Ctrl->IO.active[GMT_IN] && Ctrl->IO.active[GMT_OUT]),
-	                                 "Syntax error: Must specify both input and output filenames\n");
+	                                 "Must specify both input and output filenames\n");
 	n_errors += gmt_M_check_condition (GMT, Ctrl->IO.active[GMT_IN] && (!Ctrl->IO.file[GMT_IN] || !Ctrl->IO.file[GMT_IN][0]),
-	                                 "Syntax error: Must specify input filename\n");
+	                                 "Must specify input filename\n");
 	n_errors += gmt_M_check_condition (GMT, Ctrl->IO.active[GMT_OUT] && (!Ctrl->IO.file[GMT_OUT] || !Ctrl->IO.file[GMT_OUT][0]),
-	                                 "Syntax error: Must specify output filename\n");
-	n_errors += gmt_M_check_condition (GMT, n_files != 2, "Syntax error: Must specify only two filenames (input and output)\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->T.active, "Syntax error -T option: Must specify a valid datatype\n");
+	                                 "Must specify output filename\n");
+	n_errors += gmt_M_check_condition (GMT, n_files != 2, "Must specify only two filenames (input and output)\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->T.active, "Option -T: Must specify a valid datatype\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }

@@ -187,7 +187,7 @@ int n;
 							c[0] = '\0';	/* Chop off modifier */
 						}
 						if ((n = sscanf (&opt->arg[1], "%[^/]/%s", txt_a, txt_b)) != 2) {
-							GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Syntax error -Sp: No pole given\n");
+							GMT_Report (GMT->parent, GMT_MSG_ERROR, "Option -Sp: No pole given\n");
 							n_errors++;
 						}
 						else {
@@ -203,7 +203,7 @@ int n;
 						if (gmt_get_modifier (opt->arg, 'c', txt_a) && txt_a[0]) {	/* Crossing output file */
 							Ctrl->S.dump_crossings = true;
 							Ctrl->S.file = strdup (txt_a);
-						
+
 						}
 						break;
 					default:
@@ -219,15 +219,15 @@ int n;
 	}
 
         if (GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] == 0) GMT->common.b.ncol[GMT_IN] = 2;
-	n_errors += gmt_M_check_condition (GMT, GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] < 2, "Syntax error: Binary input data (-bi) must have at least 3 columns\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->A.active && !Ctrl->F.active, "Syntax error: At least one of -A or -F is required.\n");
+	n_errors += gmt_M_check_condition (GMT, GMT->common.b.active[GMT_IN] && GMT->common.b.ncol[GMT_IN] < 2, "Binary input data (-bi) must have at least 3 columns\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->A.active && !Ctrl->F.active, "At least one of -A or -F is required.\n");
 	if (Ctrl->G.active) {
-		n_errors += gmt_M_check_condition (GMT, Ctrl->G.file == NULL, "Syntax error option -G: Must specify output file\n");
-		n_errors += gmt_M_check_condition (GMT, GMT->common.R.inc[GMT_X] <= 0.0 || GMT->common.R.inc[GMT_Y] <= 0.0, "Syntax error -I option: Must specify positive increment(s)\n");
+		n_errors += gmt_M_check_condition (GMT, Ctrl->G.file == NULL, "Option -G: Must specify output file\n");
+		n_errors += gmt_M_check_condition (GMT, GMT->common.R.inc[GMT_X] <= 0.0 || GMT->common.R.inc[GMT_Y] <= 0.0, "Option -I: Must specify positive increment(s)\n");
 	}
-	n_errors += gmt_M_check_condition (GMT, Ctrl->D.active && Ctrl->D.length <= 0.0, "Syntax error -D: Must specify a positive length step.\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->S.mode == SPOTTER_SCAN_SPOTS && !Ctrl->S.dump_lines && !Ctrl->G.active, "Syntax error -Ss: Must specify at least one of -G, -L.\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->S.dump_crossings && !Ctrl->S.file, "Syntax error -Ss: Must specify a file name if +c is used.\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->D.active && Ctrl->D.length <= 0.0, "Option -D: Must specify a positive length step.\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->S.mode == SPOTTER_SCAN_SPOTS && !Ctrl->S.dump_lines && !Ctrl->G.active, "Option -Ss: Must specify at least one of -G, -L.\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->S.dump_crossings && !Ctrl->S.file, "Option -Ss: Must specify a file name if +c is used.\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
@@ -315,11 +315,11 @@ int GMT_polespotter (void *V_API, int mode, void *args) {
 	/*---------------------------- This is the polespotter main code ----------------------------*/
 
 	if (Ctrl->A.active && (In[POLESPOTTER_AH] = GMT_Read_Data (API, GMT_IS_DATASET, GMT_IS_FILE, GMT_IS_POINT, GMT_READ_NORMAL, NULL, Ctrl->A.file, NULL)) == NULL) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Unable to open file with abyssal hill lineaments: %s", Ctrl->A.file);
+		GMT_Report (API, GMT_MSG_ERROR, "Unable to open file with abyssal hill lineaments: %s", Ctrl->A.file);
 		Return (API->error);
 	}
 	if (Ctrl->F.active && (In[POLESPOTTER_FZ] = GMT_Read_Data (API, GMT_IS_DATASET, GMT_IS_FILE, GMT_IS_POINT, GMT_READ_NORMAL, NULL, Ctrl->F.file, NULL)) == NULL) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Unable to open file with fracture zone lineaments: %s", Ctrl->F.file);
+		GMT_Report (API, GMT_MSG_ERROR, "Unable to open file with fracture zone lineaments: %s", Ctrl->F.file);
 		Return (API->error);
 	}
 
@@ -354,7 +354,7 @@ int GMT_polespotter (void *V_API, int mode, void *args) {
 		double Rot0[3][3], Rot[3][3], *GG = NULL;
 		/* Loop over all abyssal hill and fracture zone lines and consider each subsecutive pair of points to define a great circle that intersects the pole */
 
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Entering scan mode: spots\n");
+		GMT_Report (API, GMT_MSG_INFORMATION, "Entering scan mode: spots\n");
 		create_great_circles = (Ctrl->G.active || Ctrl->S.dump_lines);
 		if (Ctrl->S.dump_crossings) {	/* Need temporary storage for all great circle poles and their weights and type */
 			n_alloc = GMT_BIG_CHUNK;
@@ -460,7 +460,7 @@ int GMT_polespotter (void *V_API, int mode, void *args) {
 	else if (Ctrl->S.mode == SPOTTER_SCAN_LINES) {	/* Determine which lines are compatible with the selected test pole */
 		double out[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, plat, sum_L = 0.0, del_angle, chi2, this_chi2;
 		unsigned int n_out = (Ctrl->S.midpoint) ? 6 : 3;
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Entering scan mode: lines [EXPERIMENTAL]\n");
+		GMT_Report (API, GMT_MSG_INFORMATION, "Entering scan mode: lines [EXPERIMENTAL]\n");
 		gmt_set_cartesian (GMT, GMT_OUT);	/* Since x here will be table number and y is segment number */
 		if (GMT_Init_IO (API, GMT_IS_DATASET, GMT_IS_POINT, GMT_OUT, GMT_ADD_DEFAULT, 0, options) != GMT_NOERROR) {	/* Establishes data output */
 			Return (API->error);
@@ -530,8 +530,8 @@ int GMT_polespotter (void *V_API, int mode, void *args) {
 		double *plon = NULL, *plat = NULL, sum_L = 0.0, del_angle, chi2;
 
 		/* Now visit all our segments to convert to geocentric and to get sum of weights once */
-	
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Entering scan mode: poles\n");
+
+		GMT_Report (API, GMT_MSG_INFORMATION, "Entering scan mode: poles\n");
 		for (d = POLESPOTTER_AH; d <= POLESPOTTER_FZ; d++) {
 			if (In[d] == NULL) continue;	/* Don't have this data set */
 			weight = (d == POLESPOTTER_AH) ? Ctrl->A.weight : Ctrl->F.weight;
@@ -552,7 +552,7 @@ int GMT_polespotter (void *V_API, int mode, void *args) {
 			}
 		}
 		/* Now we know sum_L which we will divide our grid by at the end */
-	
+
 		plon = gmt_grd_coord (GMT, Grid->header, GMT_X);
 		plat = gmt_grd_coord (GMT, Grid->header, GMT_Y);
 		for (grow = 0; grow < Grid->header->n_rows; grow++) {	/* Try all possible pole latitudes in selected region */
@@ -588,7 +588,7 @@ int GMT_polespotter (void *V_API, int mode, void *args) {
 		}
 		gmt_M_free (GMT, plon);
 		gmt_M_free (GMT, plat);
-		
+
 		for (node = 0; node < Grid->header->size; node++) Grid->data[node] /= (gmt_grdfloat)sum_L;	/* Correct for weight sum */
 	}
 	if (Ctrl->G.active) {	/* Write the spotting grid */

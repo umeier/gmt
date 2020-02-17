@@ -164,7 +164,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct X2SYS_REPORT_CTRL *Ctrl, struc
 				break;
 
 			/* Processes program-specific parameters */
-		
+
 			case 'A':
 				Ctrl->A.active = true;
 				break;
@@ -205,9 +205,9 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct X2SYS_REPORT_CTRL *Ctrl, struc
 		}
 	}
 
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->T.active || !Ctrl->T.TAG, "Syntax error: -T must be used to set the TAG\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->C.active || !Ctrl->C.col, "Syntax error: Must use -C to specify observation of interest\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->Q.mode == 3, "Syntax error: Only one of -Qe -Qi can be specified!\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->T.active || !Ctrl->T.TAG, "Option -T must be used to set the TAG\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->C.active || !Ctrl->C.col, "Must use -C to specify observation of interest\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->Q.mode == 3, "Only one of -Qe -Qi can be specified!\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
@@ -274,7 +274,7 @@ int GMT_x2sys_report (void *V_API, int mode, void *args) {
 
 	if (Ctrl->C.col) x2sys_err_fail (GMT, x2sys_pick_fields (GMT, Ctrl->C.col, s), "-C");
 	if (s->n_out_columns != 1) {
-		GMT_Report (API, GMT_MSG_NORMAL, "-C must specify a single column name\n");
+		GMT_Report (API, GMT_MSG_ERROR, "-C must specify a single column name\n");
 		x2sys_end (GMT, s);
 		Return (GMT_RUNTIME_ERROR);
 	}
@@ -292,9 +292,9 @@ int GMT_x2sys_report (void *V_API, int mode, void *args) {
 
 	/* Read the entire data base; note the -I, R and -S options are applied during reading */
 
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Read crossover database %s...\n", Ctrl->In.file);
+	GMT_Report (API, GMT_MSG_INFORMATION, "Read crossover database %s...\n", Ctrl->In.file);
 	np = x2sys_read_coe_dbase (GMT, s, Ctrl->In.file, Ctrl->I.file, GMT->common.R.wesn, Ctrl->C.col, coe_kind, Ctrl->S.file, &P, &nx, &n_tracks);
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Found %" PRIu64 " pairs and a total of %" PRIu64 " crossover records.\n", np, nx);
+	GMT_Report (API, GMT_MSG_INFORMATION, "Found %" PRIu64 " pairs and a total of %" PRIu64 " crossover records.\n", np, nx);
 
 	if (np == 0 && nx == 0) {	/* End here since nothing was allocated */
 		x2sys_end (GMT, s);
@@ -422,7 +422,7 @@ int GMT_x2sys_report (void *V_API, int mode, void *args) {
 		struct COE_ADJLIST *adj = NULL;
 
 		gmt_set_cartesian (GMT, GMT_OUT);	/* Since we will write (dist, COE) pairs */
-	
+
 		adj = gmt_M_memory (GMT, NULL, n_tracks, struct COE_ADJLIST);
 		for (p = 0; p < np; p++) {	/* For each pair of tracks that generated crossovers */
 			for (i = n = 0; i < P[p].nx; i++) {	/* For each COE between this pair */
@@ -452,11 +452,11 @@ int GMT_x2sys_report (void *V_API, int mode, void *args) {
 			adj[k].K[adj[k].n].d = R[k].d_max;			/* Add in anchor point (d_max,0) */
 			adj[k].K[adj[k].n].c = 0.0;
 			adj[k].n++;
-		
+
 			qsort(adj[k].K, adj[k].n, sizeof(struct COE_ADJUST), comp_structs);
 			sprintf (file, "%s/%s/%s.%s.adj", X2SYS_HOME, Ctrl->T.TAG, trk_name[k], Ctrl->C.col);
 			if ((fp = gmt_fopen (GMT, file, "w")) == NULL) {
-				GMT_Report (API, GMT_MSG_NORMAL, "Unable to create file %s!\n", file);
+				GMT_Report (API, GMT_MSG_ERROR, "Unable to create file %s!\n", file);
 				/* Free memory before exiting */
 				for (p = k; p < n_tracks; p++)	/* Free everything then bail */
 					gmt_M_free (GMT, adj[k].K);

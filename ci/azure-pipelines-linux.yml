@@ -21,6 +21,7 @@ steps:
     set -x -e
     sudo apt-get install -y --no-install-recommends --no-install-suggests \
         python3-pip python3-setuptools python3-wheel graphicsmagick ffmpeg
+    sudo snap install pngquant
     pip3 install --user sphinx==1.8.5
     echo "##vso[task.prependpath]$HOME/.local/bin"
   displayName: Install dependencies for building documentation
@@ -34,7 +35,7 @@ steps:
 - bash: echo "##vso[task.prependpath]$INSTALLDIR/bin"
   displayName: Set PATH
 
-- task: CacheBeta@0
+- task: Cache@2
   inputs:
     key: coastline
     path: $(COASTLINEDIR)
@@ -84,11 +85,12 @@ steps:
 # Run the full tests
 - bash: |
     set -x -e
-    cd build
-    # Download remote files before testing, see #939.
-    curl -k https://oceania.generic-mapping-tools.org/gmt_hash_server.txt | awk 'NF==3 && $1!~/earth/ {print "@"$1}' | xargs gmt which -Gc
+    # Download cache files from remote server before testing, see see #939.
+    $(gmt --show-sharedir)/tools/gmt_getremote.sh cache
+    # Download earth relief files used in testing
     gmt which -Gu @earth_relief_01m @earth_relief_02m @earth_relief_04m @earth_relief_05m @earth_relief_10m @earth_relief_15m
     # run all jobs, and rerun failed jobs
+    cd build
     ctest ${CTEST_ARGS} || ctest ${CTEST_ARGS} --rerun-failed || ctest ${CTEST_ARGS} --rerun-failed
   displayName: Full tests
   env:
@@ -117,6 +119,10 @@ steps:
     CODECOV_TOKEN: $(codecov.token)
   condition: and(eq(variables['TEST'], true), succeededOrFailed())
   displayName: Upload test coverage
+
+- bash: bash admin/image_optimize.sh build/doc/rst/html/_images/*.png
+  condition: eq(variables['DEPLOY_DOCS'], true)
+  displayName: Optimize images in documentations
 
 - bash: bash ci/deploy-gh-pages.sh
   displayName: Deploy documentations

@@ -7,7 +7,7 @@
  *
  *  Authors:    J. Luis translated from original Fortran code
  *		P. Wessel further massaged it into this form
- *	
+ *
  *  Version:	1.0
  *  Revised:	1-MAY-2009
  *
@@ -151,8 +151,8 @@ int MGD77_cm4field (struct GMT_CTRL *GMT, struct MGD77_CM4 *Ctrl, double *p_lon,
 	double *gpsq = NULL;		/* was [13680][5][2] */
 	double *gssq = NULL;		/* was [13680][5] */
 	double *gpmg = NULL;		/* was [1356][5][2] */
-	double *gsmg = NULL;		/* was [1356][5][2] */ 
-	double *hysq = NULL;		/* was [1356][6] */ 
+	double *gsmg = NULL;		/* was [1356][5][2] */
+	double *hysq = NULL;		/* was [1356][6] */
 	double *epsq = NULL;		/* was [13680] */
 	double *essq = NULL;		/* was [13680] */
 	double *ecto = NULL;		/* was [16416] */
@@ -184,7 +184,7 @@ int MGD77_cm4field (struct GMT_CTRL *GMT, struct MGD77_CM4 *Ctrl, double *p_lon,
 	f107x = calloc(1200U, sizeof(double));
 
 	if ((fp = fopen(Ctrl->CM4_M.path, "r")) == NULL) {
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "CM4: Could not open file %s\n", Ctrl->CM4_M.path);
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "CM4: Could not open file %s\n", Ctrl->CM4_M.path);
 		gmt_M_str_free (bkpo);	gmt_M_str_free (gamf);	gmt_M_str_free (f107x);
 		return 1;
 	}
@@ -195,14 +195,14 @@ int MGD77_cm4field (struct GMT_CTRL *GMT, struct MGD77_CM4 *Ctrl, double *p_lon,
 		c_unused = fgets(line, GMT_BUFSIZ, fp);
 
 	if ((n = sscanf (line, "%d %d %d", &lsmf, &lpos, &lcmf)) != 3) {
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Failed to parse line in MGD77_cm4field\n");
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Failed to parse line in MGD77_cm4field\n");
 		gmt_M_str_free (bkpo);	gmt_M_str_free (gamf);	gmt_M_str_free (f107x);
 		fclose (fp);
 		return 1;
 	}
 
 	if (lsmf > 4355 || lpos > 12415 || lcmf > 8840) {	/* Mainly to shut up CID 39232 (TAINTED variables), but it maybe right */
-		GMT_Report (GMT->parent, GMT_MSG_NORMAL, "Suspicious values in first line of umdl.CM4 file\n");;
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Suspicious values in first line of umdl.CM4 file\n");;
 		gmt_M_str_free (bkpo);	gmt_M_str_free (gamf);	gmt_M_str_free (f107x);
 		fclose (fp);
 		return 1;

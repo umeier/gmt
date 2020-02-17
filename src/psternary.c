@@ -100,8 +100,8 @@ GMT_LOCAL int usage (struct GMTAPI_CTRL *API, int level) {
 	const char *name = gmt_show_name_and_purpose (API, THIS_MODULE_LIB, THIS_MODULE_CLASSIC_NAME, THIS_MODULE_PURPOSE);
 	if (level == GMT_MODULE_PURPOSE) return (GMT_NOERROR);
 	GMT_Message (API, GMT_TIME_NONE, "usage: %s <table> [-B<args> or -Ba<args> -Bb<args> -Bc<args>] [-C<cpt>] [-G<fill>]\n", name);
-	GMT_Message (API, GMT_TIME_NONE, "\t[-JX<width>] %s[-L<a/b/c> ] [-M] [-N] %s%s [-S[<symbol>][<size>[unit]]]\n", API->K_OPT, API->O_OPT, API->P_OPT);
-	GMT_Message (API, GMT_TIME_NONE, "\t[-R<amin/amax/bmin/bmax/cmin/cmax>] [%s] [%s] [-W[<pen>][<attr>]]\n", GMT_U_OPT, GMT_V_OPT);
+	GMT_Message (API, GMT_TIME_NONE, "\t[-JX<width>] %s[-L<a>/<b/<c> ] [-M] [-N] %s%s [-S[<symbol>][<size>]]\n", API->K_OPT, API->O_OPT, API->P_OPT);
+	GMT_Message (API, GMT_TIME_NONE, "\t[-R<amin>/<amax>/<bmin>/<bmax>/<cmin>/<cmax>] [%s] [%s] [-W[<pen>][<attr>]]\n", GMT_U_OPT, GMT_V_OPT);
 	GMT_Message (API, GMT_TIME_NONE, "\t[%s] [%s] [%s] %s[%s] [%s]\n", GMT_X_OPT, GMT_Y_OPT, GMT_bi_OPT, API->c_OPT, GMT_di_OPT, GMT_e_OPT);
 	GMT_Message (API, GMT_TIME_NONE, "\t[%s] [%s]\n\t[%s] [%s]\n\t[%s] [%s]\n\t[%s] [%s] [%s]\n\n", GMT_f_OPT, GMT_g_OPT, GMT_h_OPT, GMT_i_OPT, GMT_p_OPT, GMT_qi_OPT, GMT_t_OPT, GMT_colon_OPT, GMT_PAR_OPT);
 
@@ -114,7 +114,8 @@ GMT_LOCAL int usage (struct GMTAPI_CTRL *API, int level) {
 	GMT_Message (API, GMT_TIME_NONE, "\t-C Use CPT to assign symbol colors based on z-value in 3rd column (with -S), or\n");
 	GMT_Message (API, GMT_TIME_NONE, "\t   specify contours to be drawn (with -Q).\n");
 	gmt_fill_syntax (API->GMT, 'G', NULL, "Specify color or pattern [no fill].");
-	GMT_Option (API, "J,K");
+	GMT_Message (API, GMT_TIME_NONE, "\t-J Use -JX<width> to set the plot base width.\n");
+	GMT_Option (API, "K");
 	GMT_Message (API, GMT_TIME_NONE, "\t-L Give labels for each of the 3 vertices [no labels].\n");
 	GMT_Message (API, GMT_TIME_NONE, "\t-M Convert (a,b,c) to normalized (x,y) and write to standard output.  No plotting occurs.\n");
 	GMT_Message (API, GMT_TIME_NONE, "\t-N Do not skip or clip symbols that fall outside the map border [clipping is on]\n");
@@ -197,11 +198,15 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct PSTERNARY_CTRL *Ctrl, struct G
 	gmt_consider_current_cpt (GMT->parent, &Ctrl->C.active, &(Ctrl->C.string));
 
 	if (!Ctrl->M.active) {	/* Need -R -J for anything but dumping */
-		n_errors += gmt_M_check_condition (GMT, !GMT->common.R.active[RSET], "Syntax error: Must specify -R option\n");
-		n_errors += gmt_M_check_condition (GMT, !GMT->common.J.active, "Syntax error: Must specify a map projection with the -J option\n");
-		n_errors += gmt_M_check_condition (GMT, !(Ctrl->S.active || Ctrl->Q.active), "Syntax error: Must specify either -S or -Q\n");
+		n_errors += gmt_M_check_condition (GMT, !GMT->common.R.active[RSET], "Must specify -R option\n");
+		n_errors += gmt_M_check_condition (GMT, !GMT->common.J.active, "Must specify -JX option\n");
+		n_errors += gmt_M_check_condition (GMT, !(Ctrl->S.active || Ctrl->Q.active), "Must specify either -S or -Q\n");
+		if (GMT->common.J.active) {	/* Impose our conditions on -JX */
+			n_errors += gmt_M_check_condition (GMT, GMT->common.J.string[0] != 'X', "Option -J: Must specify -JX<width>\n");
+			n_errors += gmt_M_check_condition (GMT, strchr (GMT->common.J.string, '/'), "Option -J: Must specify -JX<width>\n");
+		}
 	}
-	n_errors += gmt_M_check_condition (GMT, Ctrl->S.active && !Ctrl->S.string[0], "Syntax error: Must specify a symbol when using -S\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->S.active && !Ctrl->S.string[0], "Option -S: Must specify a symbol\n");
 
 	n_errors += gmt_check_binary_io (GMT, 2);
 
@@ -221,7 +226,7 @@ GMT_LOCAL unsigned int prep_options (struct GMTAPI_CTRL *API, struct GMT_OPTION 
 		if ((*options = GMT_Append_Option (API, opt, *options)) == NULL) return GMT_PARSE_ERROR;	/* Failure to append this option */
 	}
 	else if ((opt = GMT_Find_Option (API, 'J', *options)) && (opt->arg[0] != 'X' || strchr (opt->arg, '/'))) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Only -JX<width>[unit] is available for this module\n");
+		GMT_Report (API, GMT_MSG_ERROR, "Only -JX<width> is available for this module\n");
 		return (GMT_PARSE_ERROR);
 	}
 
@@ -257,7 +262,7 @@ GMT_LOCAL unsigned int prep_options (struct GMTAPI_CTRL *API, struct GMT_OPTION 
 		return GMT_NOERROR;
 	}
 	else if (n_axis != 3) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Use -B<args> for all three axis or specify -Ba<args> -Bb<args> -Bc<args>\n");
+		GMT_Report (API, GMT_MSG_ERROR, "Use -B<args> for all three axis or specify -Ba<args> -Bb<args> -Bc<args>\n");
 		return GMT_PARSE_ERROR;
 	}
 	for (opt = *options; opt; opt = opt->next) {	/* Linearly search for the specified option */
@@ -336,7 +341,7 @@ int GMT_ternary (void *V_API, int mode, void *args) {
 	/* This is the GMT6 modern mode name */
 	struct GMTAPI_CTRL *API = gmt_get_api_ptr (V_API);	/* Cast from void to GMTAPI_CTRL pointer */
 	if (API->GMT->current.setting.run_mode == GMT_CLASSIC && !API->usage) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Shared GMT module not found: ternary\n");
+		GMT_Report (API, GMT_MSG_ERROR, "Shared GMT module not found: ternary\n");
 		return (GMT_NOT_A_VALID_MODULE);
 	}
 	return GMT_psternary (V_API, mode, args);
@@ -403,7 +408,7 @@ int GMT_psternary (void *V_API, int mode, void *args) {
 
 	if (Ctrl->M.active) {	/* Just print the converted data and exit */
 		if (GMT_Write_Data (API, GMT_IS_DATASET, GMT_IS_FILE, GMT_IS_POINT, 0, NULL, NULL, D) != GMT_NOERROR) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Unable to write x,y file to stdout\n");
+			GMT_Report (API, GMT_MSG_ERROR, "Unable to write x,y file to stdout\n");
 			Return (API->error);
 		}
 		Return (GMT_NOERROR);
@@ -495,7 +500,7 @@ int GMT_psternary (void *V_API, int mode, void *args) {
 		PSL_comment (PSL, "Draw axis %c with origin at %g, %g and rotation = %g\n", name[k], x_origin[k], y_origin[k], rot[k]);
 		PSL_setorigin (PSL, x_origin[k], y_origin[k], rot[k], PSL_FWD);
 		if ((error = GMT_Call_Module (API, "psbasemap", GMT_MODULE_CMD, cmd))) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Unable to plot %c axis\n", name[k]);
+			GMT_Report (API, GMT_MSG_ERROR, "Unable to plot %c axis\n", name[k]);
 			Return (API->error);
 		}
 		PSL_setorigin (PSL, -x_origin[k], -y_origin[k], -rot[k], PSL_INV);
@@ -515,7 +520,7 @@ int GMT_psternary (void *V_API, int mode, void *args) {
 		PSL_comment (PSL, "Draw gridlines axis %c with origin at %g, %g and rotation = %g\n", name[k], x_origin[k], y_origin[k], rot[k]);
 		PSL_setorigin (PSL, x_origin[k], y_origin[k], rot[k], PSL_FWD);
 		if ((error = GMT_Call_Module (API, "psbasemap", GMT_MODULE_CMD, cmd))) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Unable to plot gridlines for %c axis\n", name[k]);
+			GMT_Report (API, GMT_MSG_ERROR, "Unable to plot gridlines for %c axis\n", name[k]);
 			Return (API->error);
 		}
 		PSL_setorigin (PSL, -x_origin[k], -y_origin[k], -rot[k], PSL_INV);
@@ -524,14 +529,14 @@ int GMT_psternary (void *V_API, int mode, void *args) {
 
 	for (k = 0; k <= GMT_Z; k++) {
 		if (GMT_Free_Option (API, &boptions[k])) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Unable to free -B? option\n");
+			GMT_Report (API, GMT_MSG_ERROR, "Unable to free -B? option\n");
 			Return (API->error);
 		}
 	}
 	if (Ctrl->S.active) {	/* Plot symbols */
 		char vfile[GMT_STR16] = {""};
 		if (GMT_Open_VirtualFile (API, GMT_IS_DATASET, GMT_IS_POINT, GMT_IN, D, vfile) == GMT_NOTSET) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Unable to create a virtual data set\n");
+			GMT_Report (API, GMT_MSG_ERROR, "Unable to create a virtual data set\n");
 			Return (API->error);
 		}
 		sprintf (cmd, "-R0/1/0/1 -JX%gi -O -K -S%s %s", width, Ctrl->S.string, vfile);
@@ -539,7 +544,7 @@ int GMT_psternary (void *V_API, int mode, void *args) {
 		else if (Ctrl->G.active) {strcat (cmd, " -G"); strcat (cmd, Ctrl->G.string);}
 		if (Ctrl->W.active) {strcat (cmd, " -W"); strcat (cmd, Ctrl->W.string);}
 		if ((error = GMT_Call_Module (API, "psxy", GMT_MODULE_CMD, cmd))) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Unable to plot symbols\n");
+			GMT_Report (API, GMT_MSG_ERROR, "Unable to plot symbols\n");
 			Return (API->error);
 		}
 		if (GMT_Close_VirtualFile (API, vfile) != GMT_NOERROR)

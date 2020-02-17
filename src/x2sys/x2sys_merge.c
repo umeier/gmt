@@ -116,15 +116,15 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct X2SYS_MERGE_CTRL *Ctrl, struct
 		}
 	}
 
-	n_errors += gmt_M_check_condition (GMT, n_files > 0, "Syntax error: No command-line input files allowed\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->A.active || !Ctrl->A.file, "Syntax error: Missing Base COEs database file. -A is mandatory\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->M.active || !Ctrl->M.file, "Syntax error: Missing Updating COEs database file. -M is mandatory\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->A.active && !access (Ctrl->A.file, F_OK), "Syntax error: Unable to find crossover file %s\n", Ctrl->A.file);
-	n_errors += gmt_M_check_condition (GMT, Ctrl->M.active && !access (Ctrl->M.file, F_OK), "Syntax error: Unable to find crossover file %s\n", Ctrl->M.file);
+	n_errors += gmt_M_check_condition (GMT, n_files > 0, "No command-line input files allowed\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->A.active || !Ctrl->A.file, "Missing Base COEs database file. -A is mandatory\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->M.active || !Ctrl->M.file, "Missing Updating COEs database file. -M is mandatory\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->A.active && !access (Ctrl->A.file, F_OK), "Unable to find crossover file %s\n", Ctrl->A.file);
+	n_errors += gmt_M_check_condition (GMT, Ctrl->M.active && !access (Ctrl->M.file, F_OK), "Unable to find crossover file %s\n", Ctrl->M.file);
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
-		
+
 #define bailout(code) {gmt_M_free_options (mode); return (code);}
 #define Return(code) {Free_Ctrl (GMT, Ctrl); gmt_end_module (GMT, GMT_cpy); bailout (code);}
 
@@ -159,12 +159,12 @@ int GMT_x2sys_merge (void *V_API, int mode, void *args) {
 	/*---------------------------- This is the x2sys_merge main code ----------------------------*/
 
 	if ((fp_base = fopen (Ctrl->A.file, "r")) == NULL) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Unable to open crossover file %s\n", Ctrl->A.file);
+		GMT_Report (API, GMT_MSG_ERROR, "Unable to open crossover file %s\n", Ctrl->A.file);
 		Return (GMT_ERROR_ON_FOPEN);
 	}
 
 	if ((fp_merge = fopen (Ctrl->M.file, "r")) == NULL) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Unable to open crossover file %s\n", Ctrl->M.file);
+		GMT_Report (API, GMT_MSG_ERROR, "Unable to open crossover file %s\n", Ctrl->M.file);
 		fclose (fp_base);
 		Return (GMT_ERROR_ON_FOPEN);
 	}
@@ -259,7 +259,7 @@ int GMT_x2sys_merge (void *V_API, int mode, void *args) {
 			if (!strcmp(pairs_base[i], pairs_merge[j])) {		 /* Update these COEs */
 				for (k = map_merge_start[j]; k <= map_merge_end[j]; k++) {
 					if (!fgets (line, GMT_BUFSIZ, fp_merge)) {
-						GMT_Report (API, GMT_MSG_NORMAL, "Read error in merge file line\n");
+						GMT_Report (API, GMT_MSG_ERROR, "Read error in merge file line\n");
 						fclose (fp_merge);
 						fclose (fp_base);
 						clear_mem (GMT, pairs_base, pairs_merge, map_base_start, map_base_end, map_merge_start, map_merge_end, n_base, n_merge);
@@ -269,7 +269,7 @@ int GMT_x2sys_merge (void *V_API, int mode, void *args) {
 				}
 				for (k = map_base_start[i]; k <= map_base_end[i]; k++) {	/* Advance also in the base file */
 					if (!fgets (line, GMT_BUFSIZ, fp_base)) {
-						GMT_Report (API, GMT_MSG_NORMAL, "Read error in base file\n");
+						GMT_Report (API, GMT_MSG_ERROR, "Read error in base file\n");
 						fclose (fp_merge);
 						fclose (fp_base);
 						clear_mem (GMT, pairs_base, pairs_merge, map_base_start, map_base_end, map_merge_start, map_merge_end, n_base, n_merge);
@@ -283,7 +283,7 @@ int GMT_x2sys_merge (void *V_API, int mode, void *args) {
 			else if (j == (n_merge - 1)) {	/* Not equal. So do not to update, just recopy */
 				for (k = map_base_start[i]; k <= map_base_end[i]; k++) {
 					if (!fgets (line, GMT_BUFSIZ, fp_base)) {
-						GMT_Report (API, GMT_MSG_NORMAL, "Read error in base file\n");
+						GMT_Report (API, GMT_MSG_ERROR, "Read error in base file\n");
 						fclose (fp_merge);
 						fclose (fp_base);
 						clear_mem (GMT, pairs_base, pairs_merge, map_base_start, map_base_end, map_merge_start, map_merge_end, n_base, n_merge);

@@ -74,9 +74,9 @@ GMT_LOCAL int usage (struct GMTAPI_CTRL *API, int level) {
 	const char *name = gmt_show_name_and_purpose (API, THIS_MODULE_LIB, THIS_MODULE_CLASSIC_NAME, THIS_MODULE_PURPOSE);
 	if (level == GMT_MODULE_PURPOSE) return (GMT_NOERROR);
 	GMT_Message (API, GMT_TIME_NONE, "usage: %s <cruise(s)>  [-H<headinfo>] [-Mf[<item>]|r|e|h] [%s] [%s]\n\n", name, GMT_V_OPT, GMT_PAR_OPT);
-       
+
 	if (level == GMT_SYNOPSIS) return (GMT_MODULE_SYNOPSIS);
-            
+
 	MGD77_Init (API->GMT, &M);		/* Initialize MGD77 Machinery */
 	MGD77_Cruise_Explain (API->GMT);
 	GMT_Message (API, GMT_TIME_NONE, "\n\tOPTIONS:\n");
@@ -122,7 +122,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct MGD77HEADER_CTRL *Ctrl, struct
 				Ctrl->H.active = true;
 				Ctrl->H.file = strdup (opt->arg);
 				break;
-			
+
 			case 'M':
 				Ctrl->M.active = true;
 				if (opt->arg[0] == 'f') {
@@ -136,7 +136,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct MGD77HEADER_CTRL *Ctrl, struct
 				else if (opt->arg[0] == 't')
 					Ctrl->M.mode = M77T_HEADER;
 				else {
-					GMT_Report (API, GMT_MSG_NORMAL, "Option -M Bad modifier (%c). Use -Mf|r|t!\n", opt->arg[0]);
+					GMT_Report (API, GMT_MSG_ERROR, "Option -M Bad modifier (%c). Use -Mf|r|t!\n", opt->arg[0]);
 					n_errors++;
 				}
 				break;
@@ -211,7 +211,7 @@ int GMT_mgd77header (void *V_API, int mode, void *args) {
 	tod = localtime (&tt);
 	if (Ctrl->H.active) {
 		if ((fp = gmt_fopen (GMT, Ctrl->H.file, "r")) == NULL) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Cannot open header items input file (%s)\n", Ctrl->H.file);
+			GMT_Report (API, GMT_MSG_ERROR, "Cannot open header items input file (%s)\n", Ctrl->H.file);
 			Return (GMT_NO_INPUT);
 		}
 	}
@@ -223,7 +223,7 @@ int GMT_mgd77header (void *V_API, int mode, void *args) {
 	n_paths = MGD77_Path_Expand (GMT, &M, options, &list);	/* Get list of requested IDs */
 
 	if (n_paths <= 0) {
-		GMT_Report (API, GMT_MSG_NORMAL, "No cruises given\n");
+		GMT_Report (API, GMT_MSG_ERROR, "No cruises given\n");
 		if (fp) gmt_fclose (GMT, fp);
 		Return (GMT_NO_INPUT);
 	}
@@ -238,12 +238,12 @@ int GMT_mgd77header (void *V_API, int mode, void *args) {
 
 		if (MGD77_Open_File (GMT, list[argno], &M, MGD77_READ_MODE)) continue;
 
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Now processing cruise %s\n", list[argno]);
+		GMT_Report (API, GMT_MSG_INFORMATION, "Now processing cruise %s\n", list[argno]);
 
 		D = MGD77_Create_Dataset (GMT);
 
 		if (MGD77_Read_File_nohdr (GMT, list[argno], &M, D)) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Error reading data for cruise %s\n", list[argno]);
+			GMT_Report (API, GMT_MSG_ERROR, "Failure while reading data for cruise %s\n", list[argno]);
 			Return (GMT_DATA_READ_ERROR);
 		}
 
@@ -376,7 +376,7 @@ int GMT_mgd77header (void *V_API, int mode, void *args) {
 	        if (xmax > 180) xmax -= 360.0;
 
 		if (gmt_M_is_dnan(tmin) || gmt_M_is_dnan(tmax)) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Abort: cruise %s no time records\n", M.NGDC_id);
+			GMT_Report (API, GMT_MSG_ERROR, "Abort: cruise %s no time records\n", M.NGDC_id);
 			Return (GMT_DATA_READ_ERROR);
 		}
 		MGD77_Close_File (GMT, &M);

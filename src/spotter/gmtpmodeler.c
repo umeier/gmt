@@ -78,7 +78,7 @@ GMT_LOCAL void *New_Ctrl (struct GMT_CTRL *GMT) {	/* Allocate and initialize a n
 	struct GMTPMODELER_CTRL *C;
 
 	C = gmt_M_memory (GMT, NULL, 1, struct GMTPMODELER_CTRL);
-	
+
 	return (C);
 }
 
@@ -145,7 +145,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTPMODELER_CTRL *Ctrl, struct
 				break;
 
 			/* Supplemental parameters */
-		
+
 			case 'E':	/* File with stage poles */
 				Ctrl->E.active = true;
 				n_errors += spotter_parse (GMT, opt->option, opt->arg, &(Ctrl->E.rot));
@@ -192,7 +192,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTPMODELER_CTRL *Ctrl, struct
 				Ctrl->T.active = true;
 				Ctrl->T.value = atof (opt->arg);
 				break;
-			
+
 			default:	/* Report bad options */
 				n_errors += gmt_default_error (GMT, opt->option);
 				break;
@@ -205,10 +205,10 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GMTPMODELER_CTRL *Ctrl, struct
 		for (k = 0; k < Ctrl->S.n_items; k++) Ctrl->S.mode[k] = k;
 	}
 
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->E.active, "Syntax error: Must specify -E\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->S.active, "Syntax error: Must specify -S\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->S.n_items == 0, "Syntax error: Must specify one or more fields with -S\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->T.value < 0.0, "Syntax error -T: Must specify positive age.\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->E.active, "Must specify -E\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->S.active, "Must specify -S\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->S.n_items == 0, "Must specify one or more fields with -S\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->T.value < 0.0, "Option -T: Must specify positive age.\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
@@ -267,12 +267,12 @@ int GMT_gmtpmodeler (void *V_API, int mode, void *args) {
 			Return (API->error);
 		}
 		if (D->n_columns < 2) {
-			GMT_Report (API, GMT_MSG_NORMAL, "Input data have %d column(s) but at least 2 are needed\n", (int)D->n_columns);
+			GMT_Report (API, GMT_MSG_ERROR, "Input data have %d column(s) but at least 2 are needed\n", (int)D->n_columns);
 			Return (GMT_DIM_TOO_SMALL);
 		}
 		gmt_reenable_bhi_opts (GMT);	/* Recover settings provided by user (if -b -h -i were used at all) */
 		pol = D->table[0];	/* Since it is a single file */
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Restrict evaluation to within polygons in file %s\n", Ctrl->F.file);
+		GMT_Report (API, GMT_MSG_INFORMATION, "Restrict evaluation to within polygons in file %s\n", Ctrl->F.file);
 		gmt_set_inside_mode (GMT, D, GMT_IOO_UNKNOWN);
 	}
 
@@ -298,7 +298,7 @@ int GMT_gmtpmodeler (void *V_API, int mode, void *args) {
 		}
 	}
 	if (Ctrl->T.active && Ctrl->T.value > Ctrl->N.t_upper) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Requested a fixed reconstruction time outside range of rotation table\n");
+		GMT_Report (API, GMT_MSG_ERROR, "Requested a fixed reconstruction time outside range of rotation table\n");
 		Return (GMT_RUNTIME_ERROR);
 	}
 	/* Set up input */
@@ -339,7 +339,7 @@ int GMT_gmtpmodeler (void *V_API, int mode, void *args) {
 		GMT_Put_Record (API, GMT_WRITE_TABLE_HEADER, header);	/* Write a header record */
 	}
 
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Evaluate %d model predictions based on %s\n", Ctrl->S.n_items, Ctrl->E.rot.file);
+	GMT_Report (API, GMT_MSG_INFORMATION, "Evaluate %d model predictions based on %s\n", Ctrl->S.n_items, Ctrl->E.rot.file);
 
 	/* Read the location data from file or stdin */
 
@@ -389,7 +389,7 @@ int GMT_gmtpmodeler (void *V_API, int mode, void *args) {
 			}
 		}
 		else {
-			GMT_Report (API, GMT_MSG_VERBOSE, "Point %" PRIu64 " has no age (%g) (skipped)\n", n_read);
+			GMT_Report (API, GMT_MSG_WARNING, "Point %" PRIu64 " has no age (%g) (skipped)\n", n_read);
 			continue;
 		}
 
@@ -470,9 +470,9 @@ int GMT_gmtpmodeler (void *V_API, int mode, void *args) {
 		Return (API->error);
 	}
 
-	if (n_outside) GMT_Report (API, GMT_MSG_VERBOSE, "%" PRIu64 " points fell outside the polygonal boundary\n", n_outside);
-	if (n_old) GMT_Report (API, GMT_MSG_VERBOSE, "%" PRIu64 " points had ages that exceeded the limit of the rotation model\n", n_old);
-	if (n_NaN) GMT_Report (API, GMT_MSG_VERBOSE, "%" PRIu64 " points had ages that were NaN\n", n_NaN);
+	if (n_outside) GMT_Report (API, GMT_MSG_WARNING, "%" PRIu64 " points fell outside the polygonal boundary\n", n_outside);
+	if (n_old) GMT_Report (API, GMT_MSG_WARNING, "%" PRIu64 " points had ages that exceeded the limit of the rotation model\n", n_old);
+	if (n_NaN) GMT_Report (API, GMT_MSG_WARNING, "%" PRIu64 " points had ages that were NaN\n", n_NaN);
 
 	gmt_M_free (GMT, out);
 	gmt_M_free (GMT, Out);

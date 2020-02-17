@@ -821,11 +821,11 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct PSCOUPE_CTRL *Ctrl, struct GMT
 
 	/* Check that the options selected are mutually consistent */
 
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->A.active, "Syntax error: Must specify -A option\n");
-	//n_errors += gmt_M_check_condition (GMT, Ctrl->F.active && Ctrl->S.active, "Syntax error: Cannot specify both -F and -S\n");
-	n_errors += gmt_M_check_condition (GMT, !GMT->common.R.active[RSET], "Syntax error: Must specify -R option\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->S.active, "Syntax error: Must specify -S option\n");
-	n_errors += gmt_M_check_condition (GMT, Ctrl->S.active && Ctrl->S.scale < 0.0, "Syntax error: -S must specify scale\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->A.active, "Must specify -A option\n");
+	//n_errors += gmt_M_check_condition (GMT, Ctrl->F.active && Ctrl->S.active, "Cannot specify both -F and -S\n");
+	n_errors += gmt_M_check_condition (GMT, !GMT->common.R.active[RSET], "Must specify -R option\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->S.active, "Must specify -S option\n");
+	n_errors += gmt_M_check_condition (GMT, Ctrl->S.active && Ctrl->S.scale < 0.0, "Option -S: must specify scale\n");
 
 	/* Set to default pen where needed */
 
@@ -849,7 +849,7 @@ int GMT_coupe (void *V_API, int mode, void *args) {
 	/* This is the GMT6 modern mode name */
 	struct GMTAPI_CTRL *API = gmt_get_api_ptr (V_API);	/* Cast from void to GMTAPI_CTRL pointer */
 	if (API->GMT->current.setting.run_mode == GMT_CLASSIC && !API->usage) {
-		GMT_Report (API, GMT_MSG_NORMAL, "Shared GMT module not found: coupe\n");
+		GMT_Report (API, GMT_MSG_ERROR, "Shared GMT module not found: coupe\n");
 		return (GMT_NOT_A_VALID_MODULE);
 	}
 	return GMT_pscoupe (V_API, mode, args);
@@ -1051,7 +1051,7 @@ int GMT_pscoupe (void *V_API, int mode, void *args) {
 				Ctrl->T.active = true;
 				Ctrl->T.n_plane = 1;
 				meca.NP1.rake = 1000.0;
-				GMT_Report (API, GMT_MSG_VERBOSE, "Second plane is not defined for event %s only first plane is plotted.\n", In->text);
+				GMT_Report (API, GMT_MSG_WARNING, "Second plane is not defined for event %s only first plane is plotted.\n", In->text);
 			}
 			else
 				meca.NP1.rake = meca_computed_rake2 (meca.NP2.str, meca.NP2.dip, meca.NP1.str, meca.NP1.dip, fault);
@@ -1229,7 +1229,7 @@ Definition of scalar moment.
 		Return (API->error);
 	}
 
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Number of records read: %li\n", n_rec);
+	GMT_Report (API, GMT_MSG_INFORMATION, "Number of records read: %li\n", n_rec);
 
 	if (!Ctrl->N.active) gmt_map_clip_off (GMT);
 

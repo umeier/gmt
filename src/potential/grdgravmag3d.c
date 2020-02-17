@@ -218,7 +218,7 @@ GMT_LOCAL int usage (struct GMTAPI_CTRL *API, int level) {
 	GMT_Message (API, GMT_TIME_NONE, "\t     z|Z      to compute the Vertical component.\n");
 	GMT_Message (API, GMT_TIME_NONE, "\t     h|H      to compute the Horizontal component.\n");
 	GMT_Message (API, GMT_TIME_NONE, "\t     t|T|f|F  to compute the total field.\n");
-	GMT_Message (API, GMT_TIME_NONE, "\t     For a variable inclination and declination use IGRF. Set any of -H+i|+g|+r|+f|+n to do that.\n");
+	GMT_Message (API, GMT_TIME_NONE, "\t     For a variable inclination and declination use IGRF. Set any of -H+i|g|r|f|n to do that.\n");
 	GMT_Option (API, "I");
 	GMT_Message (API, GMT_TIME_NONE, "\t   The new xinc and yinc should be divisible by the old ones (new lattice is subset of old).\n");
 	GMT_Message (API, GMT_TIME_NONE, "\t-L Sets level of observation [Default = 0].\n");
@@ -270,7 +270,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDOKB_CTRL *Ctrl, struct GMT_
 					Ctrl->In.file[n_files++] = strdup(opt->arg);
 				else {
 					n_errors++;
-					GMT_Report (API, GMT_MSG_NORMAL, "A maximum of two input grids may be processed\n");
+					GMT_Report (API, GMT_MSG_ERROR, "A maximum of two input grids may be processed\n");
 				}
 				break;
 
@@ -321,7 +321,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDOKB_CTRL *Ctrl, struct GMT_
 					break;
 				}
 				else if (opt->arg[0] == '+' && (opt->arg[1] == 'g' || opt->arg[1] == 'r' || opt->arg[1] == 'f' || opt->arg[1] == 'n')) {
-					Ctrl->H.do_igrf = true;                         /* Any of -H+i|+g|+r|+f|+n is allowed to mean use IGRF */
+					Ctrl->H.do_igrf = true;                         /* Any of -H+i|g|r|f|n is allowed to mean use IGRF */
 					if (gmt_M_is_cartesian(GMT, GMT_IN))
 						gmt_parse_common_options(GMT, "f", 'f', "g"); /* Set -fg unless already set */
 					break;
@@ -351,7 +351,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDOKB_CTRL *Ctrl, struct GMT_
 				if (Ctrl->H.pirtt) i = 1;
 				if (opt->arg[i] && (sscanf(&opt->arg[i], "%lf/%lf/%lf/%lf/%lf",
 				            &Ctrl->H.t_dec, &Ctrl->H.t_dip, &Ctrl->H.m_int, &Ctrl->H.m_dec, &Ctrl->H.m_dip)) != 5) {
-					GMT_Report(API, GMT_MSG_NORMAL, "Syntax error -H option: Can't dechiper values\n");
+					GMT_Report(API, GMT_MSG_ERROR, "Option -H: Can't dechiper values\n");
 					n_errors++;
 				}
 				break;
@@ -391,7 +391,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDOKB_CTRL *Ctrl, struct GMT_
 					else if (n == 3)
 						strncpy(Ctrl->Q.region, opt->arg, GMT_BUFSIZ);	/* Pad given as a -R region */
 					else {
-						GMT_Report(API, GMT_MSG_NORMAL, "Syntax error -Q option. Either -Q<pad> or -Q<region>\n");
+						GMT_Report(API, GMT_MSG_ERROR, "Option -Q: Either -Q<pad> or -Q<region>\n");
 						n_errors++;
 					}
 				}
@@ -417,9 +417,9 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDOKB_CTRL *Ctrl, struct GMT_
 		}
 	}
 
-	n_errors += gmt_M_check_condition(GMT, !Ctrl->In.file[0], "Syntax error: Must specify input file\n");
+	n_errors += gmt_M_check_condition(GMT, !Ctrl->In.file[0], "Option -S: Must specify input file\n");
 	n_errors += gmt_M_check_condition(GMT, Ctrl->S.active && (Ctrl->S.radius <= 0.0 || gmt_M_is_dnan(Ctrl->S.radius)),
-	                                "Syntax error: -S Radius is NaN or negative\n");
+	                                "Option -S: Radius is NaN or negative\n");
 	n_errors += gmt_M_check_condition(GMT, !Ctrl->G.active && !Ctrl->F.active,
 	                                "Error: Must specify either -G or -F options\n");
 	n_errors += gmt_M_check_condition(GMT, !GMT->common.R.active[RSET] && Ctrl->Q.active && !Ctrl->Q.n_pad,
@@ -427,13 +427,13 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDOKB_CTRL *Ctrl, struct GMT_
 	n_errors += gmt_M_check_condition(GMT, Ctrl->C.rho == 0.0 && !Ctrl->H.active,
 	                                "Error: Must specify either -Cdensity or -H<stuff>\n");
 	n_errors += gmt_M_check_condition(GMT, Ctrl->C.active && Ctrl->H.active,
-	                                "Syntax error Cannot specify both -C and -H options\n");
+	                                "Cannot specify both -C and -H options\n");
 	n_errors += gmt_M_check_condition(GMT, Ctrl->G.active && !Ctrl->G.file,
-	                                "Syntax error -G option: Must specify output file\n");
+	                                "Option -G: Must specify output file\n");
 	n_errors += gmt_M_check_condition(GMT, Ctrl->H.got_maggrid && !Ctrl->H.magfile,
-	                                "Syntax error -H+m option: Must specify source file\n");
+	                                "Option -H+m: Must specify source file\n");
 	n_errors += gmt_M_check_condition(GMT, Ctrl->F.active && gmt_access(GMT, Ctrl->F.file, R_OK),
-	                                "Syntax error -F: Cannot read file %s!\n", Ctrl->F.file);
+	                                "Option -F: Cannot read file %s!\n", Ctrl->F.file);
 	i += gmt_M_check_condition(GMT, Ctrl->G.active && Ctrl->F.active, "Warning: -F overrides -G\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
@@ -501,14 +501,14 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 		if ((Cin = GMT_Read_Data (API, GMT_IS_DATASET, GMT_IS_FILE, GMT_IS_POINT, GMT_IO_ASCII, NULL, Ctrl->F.file, NULL)) == NULL)
 			Return (API->error);
 		if (Cin->n_columns < 2) {	/* Trouble */
-			GMT_Report (API, GMT_MSG_NORMAL, "Syntax error -F option: %s does not have at least 2 columns with coordinates\n",
+			GMT_Report (API, GMT_MSG_ERROR, "Option -F: %s does not have at least 2 columns with coordinates\n",
 			            Ctrl->F.file);
 			Return (GMT_PARSE_ERROR);
 		}
 		point = Cin->table[0];	/* Can only be one table since we read a single file */
 		ndata = (unsigned int)point->n_records;
 		if (point->n_segments > 1) /* case not dealt (or ignored) and should be tested here */
-			GMT_Report(API, GMT_MSG_VERBOSE, "Multi-segment files are not used in grdgravmag3d. Using first segment only\n");
+			GMT_Report(API, GMT_MSG_WARNING, "Multi-segment files are not used in grdgravmag3d. Using first segment only\n");
 	}
 
 	/* ---------------------------------------------------------------------------- */
@@ -529,18 +529,18 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 		if (wesn[YHI] > GridA->header->wesn[YHI]) error = true;
 
 		if (error) {
-			GMT_Report(API, GMT_MSG_NORMAL, "New WESN incompatible with old.\n");
+			GMT_Report(API, GMT_MSG_ERROR, "New WESN incompatible with old.\n");
 			Return(GMT_RUNTIME_ERROR);
 		}
 
 		if ((Gout = GMT_Create_Data (API, GMT_IS_GRID, GMT_IS_SURFACE, GMT_CONTAINER_AND_DATA, NULL, wesn, inc,
 			GridA->header->registration, GMT_NOTSET, NULL)) == NULL) Return (API->error);
 
-		GMT_Report(API, GMT_MSG_LONG_VERBOSE, "Grid dimensions are n_columns = %d, n_rows = %d\n",
+		GMT_Report(API, GMT_MSG_INFORMATION, "Grid dimensions are n_columns = %d, n_rows = %d\n",
 		           Gout->header->n_columns, Gout->header->n_rows);
 	}
 
-	GMT_Report(API, GMT_MSG_LONG_VERBOSE, "Allocates memory and read data file\n");
+	GMT_Report(API, GMT_MSG_INFORMATION, "Allocates memory and read data file\n");
 
 	if (!GMT->common.R.active[RSET])
 		gmt_M_memcpy(wesn_new, GridA->header->wesn, 4, double);
@@ -561,19 +561,19 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 		GMT->common.R.active[RSET] = true;
 
 		if (wesn_padded[XLO] < GridA->header->wesn[XLO]) {
-			GMT_Report (API, GMT_MSG_VERBOSE, "Request padding at the West border exceed grid limit, trimming it\n");
+			GMT_Report (API, GMT_MSG_WARNING, "Request padding at the West border exceed grid limit, trimming it\n");
 			wesn_padded[XLO] = GridA->header->wesn[XLO];
 		}
 		if (wesn_padded[XHI] > GridA->header->wesn[XHI]) {
-			GMT_Report (API, GMT_MSG_VERBOSE, "Request padding at the East border exceed grid limit, trimming it\n");
+			GMT_Report (API, GMT_MSG_WARNING, "Request padding at the East border exceed grid limit, trimming it\n");
 			wesn_padded[XHI] = GridA->header->wesn[XHI];
 		}
 		if (wesn_padded[YLO] < GridA->header->wesn[YLO]) {
-			GMT_Report (API, GMT_MSG_VERBOSE, "Request padding at the South border exceed grid limit, trimming it\n");
+			GMT_Report (API, GMT_MSG_WARNING, "Request padding at the South border exceed grid limit, trimming it\n");
 			wesn_padded[YLO] = GridA->header->wesn[YLO];
 		}
 		if (wesn_padded[YHI] > GridA->header->wesn[YHI]) {
-			GMT_Report (API, GMT_MSG_VERBOSE, "Request padding at the North border exceed grid limit, trimming it\n");
+			GMT_Report (API, GMT_MSG_WARNING, "Request padding at the North border exceed grid limit, trimming it\n");
 			wesn_padded[YHI] = GridA->header->wesn[YHI];
 		}
 	}
@@ -589,12 +589,12 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 	if (GMT->common.R.active[RSET] && Ctrl->G.active) {
 		if (Gout->header->wesn[XLO] < GridA->header->wesn[XLO] ||
 		    Gout->header->wesn[XHI] > GridA->header->wesn[XHI]) {
-			GMT_Report (API, GMT_MSG_NORMAL, " Selected region exceeds the X-boundaries of the grid file!\n");
+			GMT_Report (API, GMT_MSG_ERROR, " Selected region exceeds the X-boundaries of the grid file!\n");
 			return (GMT_RUNTIME_ERROR);
 		}
 		else if (Gout->header->wesn[YLO] < GridA->header->wesn[YLO] ||
 		         Gout->header->wesn[YHI] > GridA->header->wesn[YHI]) {
-			GMT_Report (API, GMT_MSG_NORMAL, " Selected region exceeds the Y-boundaries of the grid file!\n");
+			GMT_Report (API, GMT_MSG_ERROR, " Selected region exceeds the Y-boundaries of the grid file!\n");
 			return (GMT_RUNTIME_ERROR);
 		}
 		gmt_RI_prepare (GMT, Gout->header);	/* Ensure -R -I consistency and set n_columns, n_rows */
@@ -629,7 +629,7 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 		}
 
 		if(GridA->header->registration != GridB->header->registration) {
-			GMT_Report(API, GMT_MSG_NORMAL, "Up and bottom grids have different registrations!\n");
+			GMT_Report(API, GMT_MSG_ERROR, "Up and bottom grids have different registrations!\n");
 			Return (GMT_RUNTIME_ERROR);
 		}
 
@@ -653,13 +653,13 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 		}
 
 		if(GridA->header->registration != GridS->header->registration) {
-			GMT_Report(API, GMT_MSG_NORMAL, "Up surface and source grids have different registrations!\n");
+			GMT_Report(API, GMT_MSG_ERROR, "Up surface and source grids have different registrations!\n");
 			Return (GMT_RUNTIME_ERROR);
 		}
 
 		if (fabs (GridA->header->inc[GMT_X] - GridS->header->inc[GMT_X]) > 1.0e-6 ||
 		          fabs(GridA->header->inc[GMT_Y] - GridS->header->inc[GMT_Y]) > 1.0e-6) {
-			GMT_Report(API, GMT_MSG_NORMAL, "Up surface and source grid increments do not match!\n");
+			GMT_Report(API, GMT_MSG_ERROR, "Up surface and source grid increments do not match!\n");
 			Return(GMT_RUNTIME_ERROR);
 		}
 
@@ -670,11 +670,11 @@ int GMT_grdgravmag3d (void *V_API, int mode, void *args) {
 	}
 
 	if (Ctrl->S.active && !two_grids && !Ctrl->H.pirtt && !Ctrl->E.active) {
-		GMT_Report (API, GMT_MSG_VERBOSE, "Unset -S option. It can only be used when two grids were provided OR -E.\n");
+		GMT_Report (API, GMT_MSG_WARNING, "Unset -S option. It can only be used when two grids were provided OR -E.\n");
 		Ctrl->S.active = false;
 	}
 	if (two_grids && Ctrl->E.active) {
-		GMT_Report (API, GMT_MSG_VERBOSE, "Two grids override -E option. Unsetting it.\n");
+		GMT_Report (API, GMT_MSG_WARNING, "Two grids override -E option. Unsetting it.\n");
 		Ctrl->E.active = false;		/* But in future we may have a second grid with variable magnetization and cte thickness */
 	}
 
@@ -1213,7 +1213,7 @@ GMT_LOCAL void grdgravmag3d_calc_surf_ (struct THREAD_STRUCT *t) {
 
 	s_rad2 = Ctrl->S.radius * Ctrl->S.radius;
 
-	if (gmt_M_is_verbose (GMT, GMT_MSG_VERBOSE)) {
+	if (gmt_M_is_verbose (GMT, GMT_MSG_WARNING)) {
 		for (i = 0; i < MIN((unsigned)(t->thread_num + 1), 5); i++) {
 			tabs[i] = '\t';
 		}
@@ -1227,8 +1227,8 @@ GMT_LOCAL void grdgravmag3d_calc_surf_ (struct THREAD_STRUCT *t) {
 
 	for (row = r_start; row < r_stop; row++) {                     /* Loop over input grid rows */
 
-		if (gmt_M_is_verbose (GMT, GMT_MSG_VERBOSE))
-			GMT_Message(GMT->parent, GMT_TIME_NONE, frmt, t->thread_num + 1, row + 1, r_stop);
+		if (gmt_M_is_verbose (GMT, GMT_MSG_WARNING))
+			GMT_Message (GMT->parent, GMT_TIME_NONE, frmt, t->thread_num + 1, row + 1, r_stop);
 
 		if (Ctrl->H.do_igrf) {                                     /* Compute a row of IGRF dec & dip */
 			for (col = 0; col < Grid->header->n_columns - 1 + MIN(indf,1); col++) {

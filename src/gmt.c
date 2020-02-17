@@ -55,7 +55,7 @@ int main (int argc, char *argv[]) {
 	bool gmt_main = false;			/* Set to true if no module was specified */
 	unsigned int modulename_arg_n = 0;	/* Argument index in argv[] that contains module name */
 	unsigned int mode = GMT_SESSION_NORMAL;	/* Default API mode */
-	unsigned int v_mode = GMT_MSG_COMPAT;	/* Default verbosity */
+	unsigned int v_mode = GMT_MSG_WARNING;	/* Default verbosity */
 	struct GMTAPI_CTRL *api_ctrl = NULL;	/* GMT API control structure */
 	char *progname = NULL;			/* Last component from the pathname */
 	char *module = NULL;			/* Module name */
@@ -222,7 +222,7 @@ int main (int argc, char *argv[]) {
 				char *s = NULL, *txt = NULL, *shell[3] = {"bash", "csh", "batch"}, stamp[GMT_LEN32] = {""};
 				char *comment[3] = {"#", "#", "REM"};
 				char *name = gmt_putusername (NULL);
-			
+
 				strftime (stamp, GMT_LEN32, "%FT%T", localtime (&right_now));
 				if ((s = strchr (argv[arg_n], '=')) && s[1]) {	/* Gave a specific script language name */
 					if ((strstr (&s[1], shell[0]) || strstr (&s[1], shell[1]) || strstr (&s[1], shell[2]) || strstr (&s[1], "dos")))
@@ -286,7 +286,24 @@ int main (int argc, char *argv[]) {
 			fprintf (stderr, "Shared libraries must be in standard system paths or set via environmental parameter %s.\n\n", LIB_PATH);
 		}
 		else {
+			char libraries[GMT_LEN128] = {"netCDF"};	/* Always linked with netCDF */
+#ifdef HAVE_GDAL
+			strcat (libraries, ", GDAL");
+#endif
+#ifdef HAVE_PCRE
+			strcat (libraries, ", PCRE");
+#endif
+#ifdef HAVE_FFTW3F
+			strcat (libraries, ", FFTW");
+#endif
+#ifdef HAVE_LAPACK
+			strcat (libraries, ", LAPACK");
+#endif
+#ifdef HAVE_ZLIB
+			strcat (libraries, ", ZLIB");
+#endif
 			fprintf (stderr, "\n\tGMT - The Generic Mapping Tools, Version %s [%u cores]\n", GMT_VERSION, api_ctrl->n_cores);
+			fprintf (stderr, "\t[Linked with %s]\n", libraries);
 			fprintf (stderr, "\t(c) 1991-%d The GMT Team (https://www.generic-mapping-tools.org/team.html).\n\n", GMT_VERSION_YEAR);
 			fprintf (stderr, "Supported in part by the US National Science Foundation (http://www.nsf.gov/)\n");
 			fprintf (stderr, "and volunteers from around the world.\n\n");

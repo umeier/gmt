@@ -16,9 +16,9 @@ Synopsis
 |-G|\ *outfile*
 [ |SYN_OPT-I| ]
 [ |SYN_OPT-R| ]
-[ |-C|\ [**n**\ ]\ *value*\ [**+f**\ *file*] ]
+[ |-C|\ [**n**]\ *value*\ [**+f**\ *file*] ]
 [ |-E|\ [*misfitfile*] ]
-[ |-F|\ [**d**\ \|\ **f**]\ *fudge* ]
+[ |-F|\ [**d**\|\ **f**]\ *fudge* ]
 [ |-L| ]
 [ |-N|\ *nodefile* ]
 [ |-S|\ *nu* ]
@@ -77,7 +77,7 @@ Optional Arguments
 
 .. _-C:
 
-**-C**\ [**n**\ ]\ *value*\ [**+f**\ *file*]
+**-C**\ [**n**]\ *value*\ [**+f**\ *file*]
     Find an approximate surface fit: Solve the linear system for the
     spline coefficients by SVD and eliminate the contribution from all
     eigenvalues whose ratio to the largest eigenvalue is less than *value*
@@ -94,7 +94,6 @@ Optional Arguments
 .. _-E:
 
 **-E**\ [*misfitfile*]
-
     Evaluate the spline exactly at the input data locations and report
     statistics of the misfit (mean, standard deviation, and rms) for *u* and
     *v* separately and combined.  Optionally, append a filename and we will
@@ -104,7 +103,7 @@ Optional Arguments
 
 .. _-F:
 
-**-F**\ [**d**\ \|\ **f**]\ *fudge*\
+**-F**\ [**d**\|\ **f**]\ *fudge*\
     The Green's functions are proportional to terms like 1/r^2 and log(r)
     and thus blow up for r == 0.  To prevent that we offer two fudging schemes:
     **-Fd**\ *del_radius* lets you add a constant offset to all radii

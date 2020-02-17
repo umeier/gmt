@@ -172,7 +172,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDLANDMASK_CTRL *Ctrl, struct
 			case 'E':	/* On-boundary setting */
 				Ctrl->E.active = true;
 				if (opt->arg[0]) {	/* Trace lines through grid */
-					GMT_Report (API, GMT_MSG_VERBOSE, "-E<values> is presently being tested and is considered experimental\n");
+					GMT_Report (API, GMT_MSG_WARNING, "-E<values> is presently being tested and is considered experimental\n");
 					Ctrl->E.linetrace = true;
 					j = pos = 0;
 					strncpy (line, opt->arg,  GMT_LEN256-1);
@@ -181,7 +181,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDLANDMASK_CTRL *Ctrl, struct
 						j++;
 					}
 					if (!(j == 1 || j == 4)) {
-						GMT_Report (API, GMT_MSG_NORMAL, "Syntax error -E option: Specify 1 or 4 border values\n");
+						GMT_Report (API, GMT_MSG_ERROR, "Option -E: Specify 1 or 4 border values\n");
 						n_errors++;
 					}
 					if (j == 1) Ctrl->N.mask[3] = Ctrl->N.mask[5] = Ctrl->N.mask[7] = Ctrl->N.mask[1];	/* Duplicate border values */
@@ -213,7 +213,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDLANDMASK_CTRL *Ctrl, struct
 					j++;
 				}
 				if (!(j == 2 || j == 5)) {
-					GMT_Report (API, GMT_MSG_NORMAL, "Syntax error -N option: Specify 2 or 5 mask values\n");
+					GMT_Report (API, GMT_MSG_ERROR, "Option -N: Specify 2 or 5 mask values\n");
 					n_errors++;
 				}
 				Ctrl->N.wetdry = (j == 2);
@@ -224,10 +224,10 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct GRDLANDMASK_CTRL *Ctrl, struct
 		}
 	}
 
-	n_errors += gmt_M_check_condition (GMT, !GMT->common.R.active[RSET], "Syntax error: Must specify -R option\n");
-	n_errors += gmt_M_check_condition (GMT, GMT->common.R.inc[GMT_X] <= 0.0 || GMT->common.R.inc[GMT_Y] <= 0.0, "Syntax error -I option: Must specify positive increment(s)\n");
-	n_errors += gmt_M_check_condition (GMT, !Ctrl->G.file, "Syntax error -G: Must specify an output file\n");
-	n_errors += gmt_M_check_condition (GMT, n_files, "Syntax error: No input files allowed.\n");
+	n_errors += gmt_M_check_condition (GMT, !GMT->common.R.active[RSET], "Must specify -R option\n");
+	n_errors += gmt_M_check_condition (GMT, GMT->common.R.inc[GMT_X] <= 0.0 || GMT->common.R.inc[GMT_Y] <= 0.0, "Option -I: Must specify positive increment(s)\n");
+	n_errors += gmt_M_check_condition (GMT, !Ctrl->G.file, "Option -G: Must specify an output file\n");
+	n_errors += gmt_M_check_condition (GMT, n_files, "No input files allowed.\n");
 
 	return (n_errors ? GMT_PARSE_ERROR : GMT_NOERROR);
 }
@@ -329,46 +329,46 @@ int GMT_grdlandmask (void *V_API, int mode, void *args) {
 	}
 
 	if ((err = gmt_init_shore (GMT, Ctrl->D.set, &c, Grid->header->wesn, &Ctrl->A.info))) {
-		GMT_Report (API, GMT_MSG_NORMAL, "%s [GSHHG %s resolution shorelines]\n", GMT_strerror(err), shore_resolution[base]);
+		GMT_Report (API, GMT_MSG_ERROR, "%s [GSHHG %s resolution shorelines]\n", GMT_strerror(err), shore_resolution[base]);
 		Return (GMT_RUNTIME_ERROR);
 	}
-	if (gmt_M_is_verbose (GMT, GMT_MSG_LONG_VERBOSE)) {
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "GSHHG version %s\n", c.version);
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "%s\n", c.title);
-		GMT_Report (API, GMT_MSG_LONG_VERBOSE, "%s\n", c.source);
+	if (gmt_M_is_verbose (GMT, GMT_MSG_INFORMATION)) {
+		GMT_Report (API, GMT_MSG_INFORMATION, "GSHHG version %s\n", c.version);
+		GMT_Report (API, GMT_MSG_INFORMATION, "%s\n", c.title);
+		GMT_Report (API, GMT_MSG_INFORMATION, "%s\n", c.source);
 
 		sprintf (line, "%s\n", GMT->current.setting.format_float_out);
 		if (Ctrl->N.wetdry) {
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes in water will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes in water will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[0])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[0]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes on land will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes on land will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[2])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[2]);
 		}
 		else {
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes in the oceans will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes in the oceans will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[0])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[0]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes on land will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes on land will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[2])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[2]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes in lakes will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes in lakes will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[4])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[4]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes in islands will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes in islands will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[6])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[6]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes in ponds will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes in ponds will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[8])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[8]);
 		}
 		if (Ctrl->E.linetrace) {
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes near shoreline will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes near shoreline will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[1])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[1]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes near lakeline will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes near lakeline will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[3])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[3]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes near islandline will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes near islandline will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[5])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[5]);
-			GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Nodes near pondline will be set to ");
+			GMT_Report (API, GMT_MSG_INFORMATION, "Nodes near pondline will be set to ");
 			(gmt_M_is_fnan (Ctrl->N.mask[7])) ? GMT_Message (API, GMT_TIME_NONE, "NaN\n") : GMT_Message (API, GMT_TIME_NONE, line, Ctrl->N.mask[7]);
 		}
 	}
 
-	GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Apply linear scale to avoid wrap-around: -Jx100id; this temporarily changes the domain\n");
+	GMT_Report (API, GMT_MSG_INFORMATION, "Apply linear scale to avoid wrap-around: -Jx100id; this temporarily changes the domain\n");
 	gmt_parse_common_options (GMT, "J", 'J', "x100id");	/* Fake linear projection so the shore machinery will work. Used bo be -Jx1id but had trouble with roundoff */
 	if (gmt_M_err_pass (GMT, gmt_proj_setup (GMT, Grid->header->wesn), "")) Return (GMT_PROJECTION_ERROR);
 	GMT->current.map.parallel_straight = GMT->current.map.meridian_straight = 2;	/* No resampling along bin boundaries */
@@ -406,7 +406,7 @@ int GMT_grdlandmask (void *V_API, int mode, void *args) {
 		GMT_Report (API, GMT_MSG_DEBUG, "Working on block # %5ld\n", bin);
 
 		if ((err = gmt_get_shore_bin (GMT, ind, &c))) {
-			GMT_Report (API, GMT_MSG_NORMAL, "%s [%s resolution shoreline]\n", GMT_strerror(err), shore_resolution[base]);
+			GMT_Report (API, GMT_MSG_ERROR, "%s [%s resolution shoreline]\n", GMT_strerror(err), shore_resolution[base]);
 			Return (GMT_RUNTIME_ERROR);
 		}
 
@@ -479,7 +479,7 @@ int GMT_grdlandmask (void *V_API, int mode, void *args) {
 				int last_col, last_row, start_col, end_col, brow, bcol;
 				double dx, del_x, del_y, xc, yc, xb, yb;
 				bool last_not_set;
-			
+
 				if ((np = gmt_assemble_shore (GMT, &c, 1, false, west_border, east_border, &p)) == 0) {	/* Just get segments */
 					gmt_free_shore (GMT, &c);
 					continue;
@@ -497,7 +497,7 @@ int GMT_grdlandmask (void *V_API, int mode, void *args) {
 
 					/* To handle lines that exit the grid we pursue the entire line even if outside.
 					 * We only check if (row,col) is inside when filling in between points and assigning nodes */
-				
+
 					for (pt = 0; pt < (unsigned int)p[k].n; pt++) {
 						/* Get (row,col) and index to nearest node for this point */
 						row = gmt_M_grd_y_to_row (GMT, p[k].lat[pt], C);
@@ -525,9 +525,9 @@ int GMT_grdlandmask (void *V_API, int mode, void *args) {
 							if (inside (GMT, C, row, col)) {	/* This point is inside, add it to our list with max distance */
 								X[nx].x = p[k].lon[pt];	X[nx].y = p[k].lat[pt];	X[nx++].d = hypot (dx, p[k].lat[pt] - p[k].lat[pt-1]);
 							}
-						
+
 							/* Now add all crossings between this line segment and the gridlines outlining the cells centered on the nodes */
-						
+
 							for (brow = MIN (last_row, row) + 1; brow <= MAX (last_row, row); brow++) {	/* If we go in here we know dy is non-zero */
 								if (brow < 0 || brow > (int)C->n_rows) continue;	/* Outside grid */
 								/* Determine intersections between the line segment and parallels */
@@ -670,13 +670,13 @@ int GMT_grdlandmask (void *V_API, int mode, void *args) {
 		Return (API->error);
 	}
 
-	if (gmt_M_is_verbose (GMT, GMT_MSG_VERBOSE)) {
+	if (gmt_M_is_verbose (GMT, GMT_MSG_WARNING)) {
 		for (k = 0; k < GRDLANDMASK_N_CLASSES; k++) {
 			if (count[k] == 0) continue;
 			if (k%2 == 0)
-				GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Level %d set for %" PRIu64 " nodes\n", k/2, count[k]);
+				GMT_Report (API, GMT_MSG_INFORMATION, "Level %d set for %" PRIu64 " nodes\n", k/2, count[k]);
 			else
-				GMT_Report (API, GMT_MSG_LONG_VERBOSE, "Border between Levels %d-%d set for %" PRIu64 " nodes\n", (k-1)/2, (k+1)/2, count[k]);
+				GMT_Report (API, GMT_MSG_INFORMATION, "Border between Levels %d-%d set for %" PRIu64 " nodes\n", (k-1)/2, (k+1)/2, count[k]);
 		}
 	}
 
