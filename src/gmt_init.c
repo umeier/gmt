@@ -6648,7 +6648,7 @@ void gmtlib_explain_options (struct GMT_CTRL *GMT, char *options) {
 
 			gmt_message (GMT, "\t-R Specify the xyz min/max coordinates of the plot window in user units.\n");
 			gmt_message (GMT, "\t   Use dd:mm[:ss] for regions given in degrees, minutes [and seconds].\n");
-			gmt_message (GMT, "\t   Append r if first 4 arguments to -R specify the longitudes/latitudes\n");
+			gmt_message (GMT, "\t   Append +r if first 4 arguments to -R specify the longitudes/latitudes\n");
 			gmt_message (GMT, "\t   of the lower left and upper right corners of a rectangular area.\n");
 			gmt_message (GMT, "\t   Or, give a gridfile to use its limits (and increments if applicable).\n");
 			break;
@@ -7580,7 +7580,7 @@ void gmt_syntax (struct GMT_CTRL *GMT, char option) {
 
 		case 'R':	/* Region option */
 			gmt_message (GMT, "\t-R<xmin>/<xmax>/<ymin>/<ymax>[/<zmin>/<zmax>]\n");
-			gmt_message (GMT, "\t  Append r if giving lower left and upper right coordinates\n");
+			gmt_message (GMT, "\t  Append +r if giving lower left and upper right coordinates\n");
 			gmt_message (GMT, "\t-Rg or -Rd for global domain\n");
 			gmt_message (GMT, "\t-R<grdfile> to take the domain from a grid file\n");
 			break;
@@ -15114,9 +15114,12 @@ GMT_LOCAL int parse_proj4 (struct GMT_CTRL *GMT, char *item, char *dest) {
 			GMT->current.proj.pars[14] = 1;
 
 		free (item_t2);			/* Cannot be freed before */
+		item_t2 = NULL;
 	}
-	else
+	else {
+		if (do_free) free (item_t1);
 		return 1;
+	}
 
 	if (isdigit(item[0]))
 		sprintf (dest, "EPSG:%s", item);
@@ -15199,6 +15202,8 @@ GMT_LOCAL int parse_proj4 (struct GMT_CTRL *GMT, char *item, char *dest) {
 		pch[0] = '\0';
 
 	if (wktext[0]) strcat(dest, wktext);	/* Append a +wktext to make this projection recognized by GDAL */
+
+	if (item_t2) free (item_t2);
 
 	return error;
 }

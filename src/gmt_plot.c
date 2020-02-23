@@ -6893,9 +6893,9 @@ GMT_LOCAL void gmtplot_prog_indicator_E (struct GMT_CTRL *GMT, double x, double 
 		}
 	}
 	PSL_setorigin (GMT->PSL, x, y, angle, PSL_FWD);	/* Origin is now mid-point of rounded line and we have possibly rotated 90 degrees */
-	if (kind == 'E') {	/* Place the two labels */
+	if (kind == 'E') {					/* Place the two labels */
 		char *c = strchr (label, ';'), *p = NULL;
-		c[0] = '\0';	/* Chop of label at t == 1 and place the first at t == 0 */
+		if (c) c[0] = '\0';				/* Chop of label at t == 1 and place the first at t == 0 */
 		if ((p = strchr (label, '%')))	/* Watch for percentage sign; if found place 0 and add % to axis label */
 			PSL_plottext (GMT->PSL, del_x-w, del_y, fsize, "0", -angle, text_justify, 0);
 		else
@@ -6976,7 +6976,8 @@ GMT_LOCAL void gmtplot_prog_indicator_F (struct GMT_CTRL *GMT, double x, double 
 		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Failed to call basemap with args %s ???\n", cmd);
 	}
 	GMT->current.map.frame.init = was;	/* Reset how we found it */
-	gmt_getfill (GMT, F1, &fill);	/* Get and set color for the triangle; no outline */
+	if (gmt_getfill (GMT, F1, &fill))	/* Get and set color for the triangle; no outline */
+		GMT_Report (GMT->parent, GMT_MSG_ERROR, "Bad fill argument %s\n", F1);
 	PSL_setfill (GMT->PSL, fill.rgb, 0);
 	w = dy * 2;	/* Set triangle size to 2 times the axis width */
 	PSL_plotsymbol (GMT->PSL, xt, 1.2*s*dy2, &w, symbol);

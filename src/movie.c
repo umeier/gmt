@@ -666,7 +666,7 @@ GMT_LOCAL unsigned int parse_common_item_attributes (struct GMT_CTRL *GMT, char 
 			case 't':	I->mode = MOVIE_LABEL_IS_COL_T;	I->col = atoi (&t[1]);	break;
 			case 'e':	I->mode = MOVIE_LABEL_IS_ELAPSED;	break;
 			case 'p':	I->mode = MOVIE_LABEL_IS_PERCENT;	break;
-			case 's':	I->mode = MOVIE_LABEL_IS_STRING;	strncpy (I->format, &t[1], GMT_LEN128); break;
+			case 's':	I->mode = MOVIE_LABEL_IS_STRING;	strncpy (I->format, &t[1], GMT_LEN128-1); break;
 			case 'f': case '\0': I->mode = MOVIE_LABEL_IS_FRAME;	break;	/* Frame number is default */
 			default:	/* Not recognized argument */
 				GMT_Report (GMT->parent, GMT_MSG_ERROR, "Option -%c: Select label flag e|f|p|s, c<col> or t<col>\n", option);
@@ -841,7 +841,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct MOVIE_CTRL *Ctrl, struct GMT_O
 									Ctrl->E.fade[GMT_IN] = frames;
 								else 	/* Set output ga */
 									Ctrl->E.fade[GMT_OUT] = frames;
-									break;
+								break;
 							default:
 								break;	/* These are caught in gmt_getmodopt so break is just for Coverity */
 						}
