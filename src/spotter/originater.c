@@ -110,7 +110,7 @@
 #define THIS_MODULE_MODERN_NAME	"originater"
 #define THIS_MODULE_LIB		"spotter"
 #define THIS_MODULE_PURPOSE	"Associate seamounts with nearest hotspot point sources"
-#define THIS_MODULE_KEYS	"<D{,FD(,>D}"
+#define THIS_MODULE_KEYS	"<D{,FD(=,>D}"
 #define THIS_MODULE_NEEDS	""
 #define THIS_MODULE_OPTIONS "-:>Vbdehiqs" GMT_OPT("HMm")
 
@@ -295,7 +295,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct ORIGINATOR_CTRL *Ctrl, struct 
 				switch (opt->arg[0]) {
 					case 'L':
 						Ctrl->L.degree = true;
-						/* Fall through on purpose to 'l' */
+						/* Intentionally fall through - to 'l' */
 					case 'l':
 						Ctrl->L.mode = 3;
 						break;
@@ -305,7 +305,7 @@ GMT_LOCAL int parse (struct GMT_CTRL *GMT, struct ORIGINATOR_CTRL *Ctrl, struct 
 						break;
 					case 'T':
 						Ctrl->L.degree = true;
-						/* Fall through on purpose to 't' */
+						/* Intentionally fall through - to 't' */
 					case 't':
 						Ctrl->L.mode = 1;
 						break;

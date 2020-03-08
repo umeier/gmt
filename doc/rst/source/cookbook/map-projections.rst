@@ -37,11 +37,11 @@ the map width is selected by default [**+dw**].  All dimensions are called
 In GMT version 4.3.0 we noticed we ran out of the alphabet for
 1-letter (and sometimes 2-letter) projection codes. To allow more
 flexibility, and to make it easier to remember the codes, we implemented
-the option to use the abbreviations used by the **Proj4** mapping
-package. Since some of the GMT projections are not in **Proj4**, we
+the option to use the abbreviations used by the `PROJ <https://proj.org/>`_ mapping
+package. Since some of the GMT projections are not in **PROJ**, we
 invented some of our own as well. For a full list of both the old 1- and
-2-letter codes, as well as the **Proj4**-equivalents see the quick
-reference cards in :doc:`/proj_codes`. For example, **-JM**\ 15c and
+2-letter codes, as well as the **PROJ**-equivalents see the quick
+reference cards in :doc:`/proj-codes`. For example, **-JM**\ 15c and
 **-JMerc**\ /15c have the same meaning.
 
 Conic projections
@@ -77,10 +77,7 @@ Taiwan. We choose the center of the projection to be at 125°E/20°N and
 cm wide. The complete command needed to generate the map below is
 therefore given by:
 
-   ::
-
-    gmt set MAP_GRID_CROSS_SIZE_PRIMARY 0
-    gmt coast -R110/140/20/35 -JB125/20/25/45/12c -Bag -Dl -Ggreen -Wthinnest -A250 -pdf GMT_albers
+.. literalinclude:: /_verbatim/GMT_albers.txt
 
 .. figure:: /_images/GMT_albers.*
    :width: 500 px
@@ -108,10 +105,7 @@ projection, i.e.,
 The equidistant conic projection is often used for atlases with maps of
 small countries. As an example, we generate a map of Cuba:
 
-   ::
-
-    gmt set FORMAT_GEO_MAP ddd:mm:ssF MAP_GRID_CROSS_SIZE_PRIMARY 0.05i
-    gmt coast -R-88/-70/18/24 -JD-79/21/19/23/12c -Bag -Di -N1/thick,red -Glightgreen -Wthinnest -pdf GMT_equidistant_conic
+.. literalinclude:: /_verbatim/GMT_equidistant_conic.txt
 
 .. figure:: /_images/GMT_equidistant_conic.*
    :width: 500 px
@@ -147,10 +141,7 @@ rectangular border rather than one defined by meridians and parallels.
 Here, we choose the regular WESN region, a "fancy" basemap frame, and
 use degrees west for longitudes. The generating commands used were
 
-   ::
-
-    gmt set MAP_FRAME_TYPE FANCY FORMAT_GEO_MAP ddd:mm:ssF MAP_GRID_CROSS_SIZE_PRIMARY 0.15c
-    gmt coast -R-130/-70/24/52 -Jl-100/35/33/45/1:50000000 -Bag -Dl -N1/thick,red -N2/thinner -A500 -Gtan -Wthinnest,white -Sblue -pdf GMT_lambert_conic
+.. literalinclude:: /_verbatim/GMT_lambert_conic.txt
 
 .. figure:: /_images/GMT_lambert_conic.*
    :width: 500 px
@@ -188,9 +179,7 @@ standard because conformity is lost with the lengthening of the meridians.
 Below we reproduce the illustration by *Snyder* [1987], with a gridline
 every 10 and annotations only every 30° in longitude:
 
-   ::
-
-    gmt coast -R-180/-20/0/90 -JPoly/10c -Bx30g10 -By10g10 -Dc -A1000 -Glightgray -Wthinnest -pdf GMT_polyconic
+.. literalinclude:: /_verbatim/GMT_polyconic.txt
 
 .. figure:: /_images/GMT_polyconic.*
    :width: 500 px
@@ -237,10 +226,7 @@ for map boundaries. Instead we require that the map boundaries be
 rectangular by defining the corners of a rectangular map boundary. Using
 0°E/40°S (lower left) and 60°E/10°S (upper right) as our corners we try
 
-   ::
-
-    gmt set FORMAT_GEO_MAP ddd:mm:ssF MAP_GRID_CROSS_SIZE_PRIMARY 0
-    gmt coast -R0/-40/60/-10+r -JA30/-30/12c -Bag -Dl -A500 -Gp10+r300 -Wthinnest -pdf GMT_lambert_az_rect
+.. literalinclude:: /_verbatim/GMT_lambert_az_rect.txt
 
 .. figure:: /_images/GMT_lambert_az_rect.*
    :width: 500 px
@@ -260,9 +246,7 @@ Hemisphere map
 Here, you must specify the world as your region (**-Rg** or
 **-Rd**). E.g., to obtain a hemisphere view that shows the Americas, try
 
-   ::
-
-    gmt coast -Rg -JA280/30/12c -Bg -Dc -A1000 -Gnavy -pdf GMT_lambert_az_hemi
+.. literalinclude:: /_verbatim/GMT_lambert_az_hemi.txt
 
 .. figure:: /_images/GMT_lambert_az_hemi.*
    :width: 400 px
@@ -319,9 +303,7 @@ pole. This means we have a polar stereographic projection and the map
 boundaries will coincide with lines of constant longitude and latitude.
 An example is given by
 
-   ::
-
-    gmt coast -R-30/30/60/72 -Js0/90/12c/60 -B10g -Dl -A250 -Groyalblue -Sseashell -pdf GMT_stereographic_polar
+.. literalinclude:: /_verbatim/GMT_stereographic_polar.txt
 
 .. figure:: /_images/GMT_stereographic_polar.*
    :width: 500 px
@@ -340,10 +322,7 @@ two points as corners in the rectangle and appending an "r" to the
 **-R** option. This command produces a map as presented in
 Figure :ref:`Polar stereographic <GMT_stereographic_rect>`:
 
-   ::
-
-    gmt set MAP_ANNOT_OBLIQUE 30
-    gmt coast -R-25/59/70/72+r -JS10/90/11c -B20g -Dl -A250 -Gdarkbrown -Wthinnest -Slightgray -pdf GMT_stereographic_rect
+.. literalinclude:: /_verbatim/GMT_stereographic_rect.txt
 
 .. _GMT_stereographic_rect:
 
@@ -362,10 +341,7 @@ equal-area projection. Thus, one can make both rectangular and
 hemispheric maps. Our example shows Australia using a projection pole at
 130°E/30°S. The command used was
 
-   ::
-
-    gmt set MAP_ANNOT_OBLIQUE 0
-    gmt coast -R100/-42/160/-8+r -JS130/-30/12c -Bag -Dl -A500 -Ggreen -Slightblue -Wthinnest -pdf GMT_stereographic_general
+.. literalinclude:: /_verbatim/GMT_stereographic_general.txt
 
 .. figure:: /_images/GMT_stereographic_general.*
    :width: 500 px
@@ -417,9 +393,7 @@ The imagined view of northwest Europe from a Space Shuttle at 230 km
 looking due east is thus accomplished by the following
 :doc:`/coast` command:
 
-   ::
-
-    gmt coast -Rg -JG4/52/230/90/60/180/60/60/12c -Bx2g2 -By1g1 -Ia -Di -Glightbrown -Wthinnest -Slightblue --MAP_ANNOT_MIN_SPACING=0.6c -pdf GMT_perspective
+.. literalinclude:: /_verbatim/GMT_perspective.txt
 
 .. _GMT_perspective:
 
@@ -458,9 +432,7 @@ To specify the orthographic projection the same options **-Jg** or
 Our example of a perspective view centered on 75°W/40°N can therefore be
 generated by the following :doc:`/coast` command:
 
-   ::
-
-    gmt coast -Rg -JG-75/41/12c -Bg -Dc -A5000 -Gpink -Sthistle -pdf GMT_orthographic
+.. literalinclude:: /_verbatim/GMT_orthographic.txt
 
 .. figure:: /_images/GMT_orthographic.*
    :width: 400 px
@@ -496,9 +468,7 @@ generated by the following :doc:`/coast`
 command. Note that the antipodal point is 180° away from the center, but
 in this projection this point plots as the entire map perimeter:
 
-   ::
-
-    gmt coast -Rg -JE-100/40/12c -Bg -Dc -A10000 -Glightgray -Wthinnest -pdf GMT_az_equidistant
+.. literalinclude:: /_verbatim/GMT_az_equidistant.txt
 
 .. figure:: /_images/GMT_az_equidistant.*
    :width: 400 px
@@ -534,9 +504,7 @@ To specify the Gnomonic projection you must supply:
 Using a horizon of 60, our example of this projection centered on
 120°W/35°N can therefore be generated by the following :doc:`/coast` command:
 
-   ::
-
-    gmt coast -Rg -JF-120/35/60/12c -B30g15 -Dc -A10000 -Gtan -Scyan -Wthinnest -pdf GMT_gnomonic
+.. literalinclude:: /_verbatim/GMT_gnomonic.txt
 
 .. figure:: /_images/GMT_gnomonic.*
    :width: 500 px
@@ -597,9 +565,7 @@ are optional and have defaults):
 Our example presents a world map at a scale of 0.03 cm per degree
 which will give a map 10.8-cm wide. It was created with the command:
 
-   ::
-
-    gmt coast -R0/360/-70/70 -Jm0.03c -Bxa60f15 -Bya30f15 -Dc -A5000 -Gred --MAP_FRAME_TYPE=fancy+ -pdf GMT_mercator
+.. literalinclude:: /_verbatim/GMT_mercator.txt
 
 .. figure:: /_images/GMT_mercator.*
    :width: 500 px
@@ -636,9 +602,7 @@ Although defaulting to 1, you can change the map scale factor via the
 Mercator map of south-east Europe and the Middle East with 35°E as the
 central meridian:
 
-   ::
-
-    gmt coast -R20/30/50/45+r -Jt35/0.5c -Bag -Dl -A250 -Glightbrown -Wthinnest -Sseashell -pdf GMT_transverse_merc
+.. literalinclude:: /_verbatim/GMT_transverse_merc.txt
 
 .. figure:: /_images/GMT_transverse_merc.*
    :width: 500 px
@@ -650,9 +614,7 @@ central meridian:
 The transverse Mercator can also be used to generate a global map - the
 equivalent of the 360° Mercator map. Using the command
 
-   ::
-
-    gmt coast -R0/360/-80/80 -JT330/-45/10c -Ba30g -BWSne -Dc -A2000 -Slightblue -G0 -pdf GMT_TM
+.. literalinclude:: /_verbatim/GMT_TM.txt
 
 we made the map illustrated in Figure :ref:`Global transverse Mercator
 <GMT_TM>`. Note that
@@ -755,9 +717,7 @@ For all three definitions, the upper case **A**\|\ **B**\|\ **C** means we
 will allow projection poles in the southern hemisphere [By default we map any such
 poles to their antipodes in the north hemisphere].  Our example was produced by the command
 
-   ::
-
-    gmt coast -R270/20/305/25+r -JOc280/25.5/22/69/12c -Bag -Di -A250 -Gburlywood -Wthinnest -TdjTR+w1c+f2+l+o0.4c -Sazure --FONT_TITLE=8p --MAP_TITLE_OFFSET=4p -pdf GMT_obl_merc
+.. literalinclude:: /_verbatim/GMT_obl_merc.txt
 
 .. figure:: /_images/GMT_obl_merc.*
    :width: 500 px
@@ -819,9 +779,7 @@ The requirements to define this projection are:
 A detailed map of the island of Sardinia centered on the 8°45'E meridian
 using the Cassini projection can be obtained by running the command:
 
-   ::
-
-    gmt coast -R7:30/38:30/10:30/41:30+r -JC8.75/40/6c -Bafg -LjBR+c40+w100+f+o0.4c/0.5c -Gspringgreen -Dh -Sazure -Wthinnest -Ia/thinner --FONT_LABEL=12p -pdf GMT_cassini
+.. literalinclude:: /_verbatim/GMT_cassini.txt
 
 .. figure:: /_images/GMT_cassini.*
    :width: 400 px
@@ -854,9 +812,7 @@ parallel is defined, the central meridian must be supplied as well.
 A world map centered on the dateline using this projection can be
 obtained by running the command:
 
-   ::
-
-    gmt coast -Rg -JQ12c -B60f30g30 -Dc -A5000 -Gtan4 -Slightcyan -pdf GMT_equi_cyl
+.. literalinclude:: /_verbatim/GMT_equi_cyl.txt
 
 .. figure:: /_images/GMT_equi_cyl.*
    :width: 500 px
@@ -928,9 +884,7 @@ For instance, a world map centered on the 35°E meridian using the Behrman
 projection (Figure :ref:`Behrman cylindrical projection <GMT_general_cyl>`)
 can be obtained by running the command:
 
-   ::
-
-    gmt coast -R-145/215/-90/90 -JY35/30/12c -B45g45 -Dc -A10000 -Sdodgerblue -Wthinnest -pdf GMT_general_cyl
+.. literalinclude:: /_verbatim/GMT_general_cyl.txt
 
 .. _GMT_general_cyl:
 
@@ -964,9 +918,7 @@ For instance, a world map centered on the 90°E meridian at a map scale of
 1:400,000,000 (Figure :ref:`Miller projection <GMT_miller>`) can be obtained as
 follows:
 
-   ::
-
-    gmt coast -R-90/270/-80/90 -Jj1:400000000 -Bx45g45 -By30g30 -Dc -A10000 -Gkhaki -Wthinnest -Sazure -pdf GMT_miller
+.. literalinclude:: /_verbatim/GMT_miller.txt
 
 .. _GMT_miller:
 
@@ -1021,10 +973,7 @@ stereographic projection (standard parallel is 45°,
 Figure :ref:`Gall's stereographic projection <GMT_gall_stereo>`),
 is obtained as follows:
 
-   ::
-
-    gmt set FORMAT_GEO_MAP dddA
-    gmt coast -R-180/180/-60/80 -JCyl_stere/0/45/12c -Bxa60f30g30 -Bya30g30 -Dc -A5000 -Wblack -Gseashell4 -Santiquewhite1 -pdf GMT_gall_stereo
+.. literalinclude:: /_verbatim/GMT_gall_stereo.txt
 
 .. _GMT_gall_stereo:
 
@@ -1064,9 +1013,7 @@ defined by selecting:
 
 A view of the Pacific ocean using the Dateline as central meridian is accomplished thus
 
-   ::
-
-    gmt coast -Rg -JH12c -Bg -Dc -A10000 -Gblack -Scornsilk -pdf GMT_hammer
+.. literalinclude:: /_verbatim/GMT_hammer.txt
 
 .. figure:: /_images/GMT_hammer.*
    :width: 500 px
@@ -1094,9 +1041,7 @@ longitudes and latitudes into rectangular *x*/*y* coordinates:
 
 An example centered on Greenwich can be generated thus:
 
-   ::
-
-    gmt coast -Rd -JW12c -Bg -Dc -A10000 -Gtomato1 -Sskyblue -pdf GMT_mollweide
+.. literalinclude:: /_verbatim/GMT_mollweide.txt
 
 .. figure:: /_images/GMT_mollweide.*
    :width: 500 px
@@ -1131,9 +1076,7 @@ use it you must enter
 Centered on Greenwich, the example in Figure :ref:`Winkel Tripel projection
 <GMT_winkel>` was created by this command:
 
-   ::
-
-    gmt coast -Rd -JR12c -Bg -Dc -A10000 -Gburlywood4 -Swheat1 -pdf GMT_winkel
+.. literalinclude:: /_verbatim/GMT_winkel.txt
 
 .. _GMT_winkel:
 
@@ -1164,9 +1107,7 @@ enter
 
 Again centered on Greenwich, the example below was created by this command:
 
-   ::
-
-    gmt coast -Rd -JN12c -Bg -Dc -A10000 -Ggoldenrod -Ssnow2 -pdf GMT_robinson
+.. literalinclude:: /_verbatim/GMT_robinson.txt
 
 .. figure:: /_images/GMT_robinson.*
    :width: 500 px
@@ -1196,9 +1137,7 @@ addition, you must enter
 Centered on the Dateline, the Eckert IV example below was created by
 this command:
 
-   ::
-
-    gmt coast -Rg -JKf12c -Bg -Dc -A10000 -Wthinnest -Givory -Sbisque3 -pdf GMT_eckert4
+.. literalinclude:: /_verbatim/GMT_eckert4.txt
 
 .. figure:: /_images/GMT_eckert4.*
    :width: 500 px
@@ -1233,9 +1172,7 @@ parallels (and central meridian). To use it, you need to select:
 
 A simple world map using the sinusoidal projection is therefore obtained by
 
-   ::
-
-     gmt coast -Rd -JI12c -Bxg30 -Byg15 -Dc -A10000 -Gcoral4 -Sazure3 -pdf GMT_sinusoidal
+.. literalinclude:: /_verbatim/GMT_sinusoidal.txt
 
 .. figure:: /_images/GMT_sinusoidal.*
    :width: 500 px
@@ -1254,13 +1191,7 @@ boundaries just mentioned) that is 14.4 cm wide we use the scale
 14.4/360 = 0.04 and offset the subsequent plots horizontally by their
 widths (140\ :math:`\cdot`\ 0.04 and 80\ :math:`\cdot`\ 0.04):
 
-   ::
-
-     gmt begin GMT_sinus_int
-       gmt coast -R200/340/-90/90 -Ji0.035c -Bxg30 -Byg15 -A10000 -Dc -Gdarkred -Sazure
-       gmt coast -R-20/60/-90/90 -Ji0.035c -Bxg30 -Byg15 -Dc -A10000 -Gdarkgreen -Sazure -X5.6c
-       gmt coast -R60/200/-90/90 -Ji0.035c -Bxg30 -Byg15 -Dc -A10000 -Gdarkblue -Sazure -X3.2c
-     gmt end show
+.. literalinclude:: /_verbatim/GMT_sinus_int.txt
 
 .. figure:: /_images/GMT_sinus_int.*
    :width: 500 px
@@ -1288,15 +1219,16 @@ world enclosed in a circle. To use it you must enter
 
 Centered on the Dateline, the example below was created by this command:
 
-    ::
-
-      gmt coast -Rg -JV10c -Bxg30 -Byg15 -Dc -Glightgray -Scornsilk -A10000 -Wthinnest -pdf GMT_grinten
+.. literalinclude:: /_verbatim/GMT_grinten.txt
 
 .. figure:: /_images/GMT_grinten.*
    :width: 400 px
    :align: center
 
    World map using the Van der Grinten projection.
+
+Footnotes
+---------
 
 .. [20]
    Snyder, J. P., 1987, Map Projections A Working Manual, U.S.
